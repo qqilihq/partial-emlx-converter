@@ -19,14 +19,14 @@ const eol = '\r\n';
 const base64lineLength = 76;
 
 export function processEmlxs (inputDir: string, outputDir: string) {
-  glob('**/*.emlx', { cwd: inputDir }, (err, files) => {
+  glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
     if (err) throw err;
-    files.forEach(async f => {
+    for (let f of files) {
       console.log(`Processing ${f}`);
       const emlContent = await processEmlx(path.join(inputDir, f));
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(f))}.eml`);
       fs.writeFileSync(resultPath, emlContent);
-    });
+    }
   });
 }
 
