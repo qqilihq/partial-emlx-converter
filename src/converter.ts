@@ -129,6 +129,9 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
 
 function getFilename (headers) {
 
+  // this gives a good overview of the plethora of encoding types:
+  // http://test.greenbytes.de/tech/tc2231/
+
   let contentDisposition = headers['Content-Disposition'];
 
   if (contentDisposition) {
