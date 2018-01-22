@@ -33,19 +33,18 @@ export function processEmlxs (inputDir: string, outputDir: string) {
 export function processEmlx (emlxFile: string): Promise<string> {
 
   const rawEmlx = fs.readFileSync(emlxFile, 'utf8');
-  const preprocessedEmlx = removeXmlEpilogue(
-                                preprocessBoundaries(rawEmlx));
+  const lines = rawEmlx.split(/\r?\n/);
+
+  const preprocessedEmlx = removePlistEpilogue(
+                                preprocessBoundaries(lines)).join(eol);
 
   const appender = [];
 
-  const lines = preprocessedEmlx.split(/\r?\n/);
   const headers = lines.slice(1 /* drop first line */, lines.indexOf('')).join(eol);
 
   return new Promise<string>((resolve, reject) => {
     emlformat.parse(preprocessedEmlx, (err, data: IContent) => {
       if (err) return reject(err);
-
-      console.log(Array.isArray(data.body));
 
       if (Array.isArray(data.body)) {
 
@@ -147,8 +146,7 @@ function stripExtension (fileName) {
 // by a blank line, Mail.app does NOT always set blank
 // lines though as I found during some experiments --
 // not sure, who's right here
-function preprocessBoundaries (emlString: string) {
-  const lines = emlString.split(/\r?\n/);
+function preprocessBoundaries (lines: string[]): string[] {
   const boundaries = [];
   lines.forEach((line, idx) => {
     const boundary = emlformat.getBoundary(line);
@@ -162,12 +160,10 @@ function preprocessBoundaries (emlString: string) {
       lines[idx] = eol + lines[idx];
     }
   });
-  return lines.join(eol);
+  return lines;
 }
 
-function removeXmlEpilogue (emlxString: string): string {
-
-  // TODO -- the following crap needs to be removed:
+function removePlistEpilogue (lines: string[]): string[] {
 
   // <?xml version="1.0" encoding="UTF-8"?>
   // <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -175,7 +171,28 @@ function removeXmlEpilogue (emlxString: string): string {
   // …
   // </plist>
 
-  return emlxString;
+  // go through the lines backward, and expect an </plist> at the end;
+  // then keep going upwards until the <?xml …> element;
+  let stripFrom = lines.length - 1;
+  let readContent = false;
+  for (let index = lines.length - 1; index >= 0; index--) {
+    if (lines[index].length === 0) { // skip empty lines
+      continue;
+    }
+    // end of epilogue, but only if it is at the end of the file
+    // (just to be sure not to strip away any plist strings which
+    // might occur *within* an email?!?!)
+    if (!readContent && lines[index] === '</plist>') {
+      continue;
+    }
+    readContent = true;
+    // ok, we found the beginning, strip away until here
+    if (lines[index] === '<?xml version="1.0" encoding="UTF-8"?>') {
+      stripFrom = index;
+      break;
+    }
+  }
+  return lines.slice(0, stripFrom);
 }
 
 // CLI only when module is not require'd
