@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
 import * as emlformat from 'eml-format';
+import * as parseRfc2047 from 'rfc2047';
+import * as parseContentDisposition from 'content-disposition';
+import * as parseContentType from 'content-type';
 
 interface IContent {
   headers: object;
@@ -125,13 +128,37 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
 }
 
 function getFilename (headers) {
-  const header = headers['Content-Disposition'] || headers['Content-Type'];
-  if (!header) {
-    return null;
+
+  let contentDisposition = headers['Content-Disposition'];
+
+  if (contentDisposition) {
+
+    // this also takes care of RFC 2231/5987
+    // https://www.greenbytes.de/tech/webdav/rfc5987.html
+    const parsed = parseContentDisposition.parse(removeLinebreaks(contentDisposition));
+
+    // if applicable, decode RFC 2047 encoded filename
+    // (this will just return the original name, in case
+    // RFC 2047 does not apply)
+    // https://www.greenbytes.de/tech/webdav/rfc2047.html
+    return parseRfc2047.decode(parsed.parameters.filename);
+
   }
-  // copied from eml-format.js
-  const match = /name="?(.+?)"?$/gi.exec(header);
-  return match ? match[1] : null;
+
+  let contentType = headers['Content-Type'];
+
+  if (contentType) {
+
+    let parsed = parseContentType.parse(removeLinebreaks(contentType));
+    return parsed.parameters.name;
+
+  }
+
+  return null;
+}
+
+function removeLinebreaks (value: string): string {
+  return value.replace(/\r?\n/g, ' ');
 }
 
 function wrap (value: string): string {

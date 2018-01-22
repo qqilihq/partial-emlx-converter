@@ -9,8 +9,11 @@
   },
   "license": "MIT",
   "dependencies": {
+    "content-disposition": "^0.5.2",
+    "content-type": "^1.0.4",
     "glob": "^7.1.2",
-    "parse-multipart": "^1.0.4"
+    "parse-multipart": "^1.0.4",
+    "rfc2047": "^2.0.1"
   },
   "devDependencies": {
     "@types/expect.js": "^0.3.29",
