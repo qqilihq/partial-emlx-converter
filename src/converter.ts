@@ -88,11 +88,12 @@ function writeBody (parts: IPart[], appender: string[]) {
       appender.push(`${key}: ${part.part.headers[key]}`);
     }
 
+    appender.push('');
+
     // process the body
     if (Array.isArray(part.part.body)) { // nested parts
       writeBody(part.part.body, appender);
     } else { // string or buffer data
-      appender.push('');
       appender.push(part.part.body);
     }
   });
