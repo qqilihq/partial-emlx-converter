@@ -21,6 +21,9 @@ const eol = '\r\n';
 
 const base64lineLength = 76;
 
+/** Newline was inserted subsequently; needs to be stripped away afterwards. */
+const removeNewlineMarker = '__remove_newline__';
+
 export function processEmlxs (inputDir: string, outputDir: string) {
   glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
     if (err) throw err;
@@ -62,13 +65,20 @@ export function processEmlx (emlxFile: string): Promise<string> {
         appender.push(data.body);
       }
 
-      resolve(headers + eol + eol + eol + appender.join(eol));
+      // fix: remove the newline markers (and the following newline :)
+      const payloadResult = appender.join(eol).replace(new RegExp(removeNewlineMarker + eol, 'g'), '');
+
+      resolve(headers + eol + eol + eol + payloadResult + eol);
 
     });
   });
 }
 
 function writeBody (parts: IPart[], appender: string[]) {
+
+  if (appender.length > 0) {
+    appender.push('');
+  }
 
   let boundary;
 
@@ -96,6 +106,7 @@ function writeBody (parts: IPart[], appender: string[]) {
     // process the body
     if (Array.isArray(part.part.body)) { // nested parts
       writeBody(part.part.body, appender);
+      appender.push('');
     } else { // string or buffer data
       appender.push(part.part.body);
     }
@@ -186,11 +197,14 @@ function preprocessBoundaries (lines: string[]): string[] {
     const boundary = emlformat.getBoundary(line);
     if (boundary) {
       boundaries.push('--' + boundary);
+      boundaries.push('--' + boundary + '--');
     }
 
     // boundary line currently NOT preceeded by blank line?
     if (boundaries.indexOf(line) !== -1 && lines[idx - 1] !== '') {
       // add a preceeding newline character
+      console.log(`adding preceeding newline @ ${idx}: ${lines[idx]}`);
+      lines[idx - 1] = lines[idx - 1] + removeNewlineMarker;
       lines[idx] = eol + lines[idx];
     }
   });
