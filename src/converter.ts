@@ -230,7 +230,10 @@ function extractPayload (content: string): string {
 }
 
 function encode (encoding: string, data: Buffer): string {
-  switch (encoding) {
+  // https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
+  // TODO support: 8bit, 7bit, binary, 'x-token' (i.e. non-standard)
+  // TODO […] "Content-Transfer-Encoding: 7BIT" is assumed if the Content-Transfer-Encoding header field is not present.'
+  switch (encoding.toLowerCase()) {
     case 'base64':
       return wrap(data.toString('base64'));
     case 'quoted-printable':
