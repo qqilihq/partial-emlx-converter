@@ -141,7 +141,9 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
       getFilename(part.part.headers));
     const encoding = part.part.headers['Content-Transfer-Encoding'];
     const fileBuffer = fs.readFileSync(filePath);
-    part.part.body = encode(encoding, fileBuffer);
+    part.part.body = encode(encoding, fileBuffer)
+                      // make sure, that we use CR+LF everywhere
+                      .replace(/\r?\n/g, eol);
   }
 }
 
@@ -231,15 +233,18 @@ function extractPayload (content: string): string {
 
 function encode (encoding: string, data: Buffer): string {
   // https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
-  // TODO support: 8bit, 7bit, binary, 'x-token' (i.e. non-standard)
-  // TODO […] "Content-Transfer-Encoding: 7BIT" is assumed if the Content-Transfer-Encoding header field is not present.'
-  switch (encoding.toLowerCase()) {
+  // 7bit is the default if not explicitly specified
+  // https://stackoverflow.com/a/28531705/388827
+  const encodingTemp = encoding ? encoding.toLowerCase() : '7bit';
+  switch (encodingTemp) {
     case 'base64':
       return wrap(data.toString('base64'));
     case 'quoted-printable':
-      return libqp.wrap(libqp.encode(data), encodedLineLength)
-                    // make sure, that we use CR+LF everywhere
-                    .replace(/\r?\n/g, eol);
+      return libqp.wrap(libqp.encode(data), encodedLineLength);
+    case '7bit':
+    case '8bit':
+    case 'binary':
+      return data.toString('utf8');
     default:
       throw new Error(`Unimplemented encoding: ${encoding}`);
   }

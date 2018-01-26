@@ -15,10 +15,10 @@ describe('converter', () => {
     let expectedResult: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114858.partial.emlx'));
-      expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114858.eml'), 'utf-8');
+      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'));
+      expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114892.eml'), 'utf-8');
       if (debug) {
-        fs.writeFileSync(path.join(os.homedir(), '114858.eml'), result, 'utf-8');
+        fs.writeFileSync(path.join(os.homedir(), '114892.eml'), result, 'utf-8');
       }
     });
 
@@ -31,8 +31,13 @@ describe('converter', () => {
       expect(result).to.contain('iVBORw0KGgoAAAANSUhE');
     });
 
-    it('result has 2077 lines', () => {
-      expect(result.split('\n').length).to.eql(2077);
+    it('encodes 7bit in short.txt attachment', () => {
+      expect(result).to.contain('Short text.');
+    });
+
+    it('result has 2171 lines', () => {
+      // one line less in generated eml, b/c of different quoted-printable encoding
+      expect(result.split('\n').length).to.eql(2171);
     });
 
     it('headers are equal', () => {
@@ -50,17 +55,19 @@ describe('converter', () => {
 
     it('boundaries are at expected lines', () => {
       const tempLines = result.split(/\r?\n/);
-      expect(tempLines[19]).to.eql('--Apple-Mail=_DF3287E9-4C39-45B0-A7DB-37F217F38047');
-      expect(tempLines[79]).to.eql('--Apple-Mail=_DF3287E9-4C39-45B0-A7DB-37F217F38047');
-      expect(tempLines[84]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[90]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[566]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[626]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[667]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[740]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[2065]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF');
-      expect(tempLines[2073]).to.eql('--Apple-Mail=_152592B6-E63D-4BAC-A23C-2EA3614823AF--');
-      expect(tempLines[2075]).to.eql('--Apple-Mail=_DF3287E9-4C39-45B0-A7DB-37F217F38047--');
+      expect(tempLines[19]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B');
+      expect(tempLines[92]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B');
+      expect(tempLines[113]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[158]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[634]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[699]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      // from here, offset -1 compared to original because
+      // of different quoted-printable encoding
+      expect(tempLines[739]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[816]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[2141]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[2167]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886--');
+      expect(tempLines[2169]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--');
     });
 
   });
