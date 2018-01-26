@@ -1,4 +1,4 @@
-import * as expect from 'expect.js';
+import expect = require('expect.js');
 import 'mocha';
 import * as path from 'path';
 import * as converter from '../src/converter';
