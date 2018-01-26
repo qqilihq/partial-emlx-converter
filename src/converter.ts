@@ -234,7 +234,9 @@ function encode (encoding: string, data: Buffer): string {
     case 'base64':
       return wrap(data.toString('base64'));
     case 'quoted-printable':
-      return libqp.wrap(libqp.encode(data), encodedLineLength);
+      return libqp.wrap(libqp.encode(data), encodedLineLength)
+                    // make sure, that we use CR+LF everywhere
+                    .replace(/\r?\n/g, eol);
     default:
       throw new Error(`Unimplemented encoding: ${encoding}`);
   }
