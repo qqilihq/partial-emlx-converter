@@ -203,7 +203,7 @@ function preprocessBoundaries (lines: string[]): string[] {
     // boundary line currently NOT preceeded by blank line?
     if (boundaries.indexOf(line) !== -1 && lines[idx - 1] !== '') {
       // add a preceeding newline character
-      console.log(`adding preceeding newline @ ${idx}: ${lines[idx]}`);
+      // console.log(`adding preceeding newline @ ${idx}: ${lines[idx]}`);
       lines[idx - 1] = lines[idx - 1] + removeNewlineMarker;
       lines[idx] = eol + lines[idx];
     }
