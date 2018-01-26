@@ -86,7 +86,9 @@ function writeBody (parts: IPart[], appender: string[]) {
 
     // write the headers
     for (const key in part.part.headers) {
-      appender.push(`${key}: ${part.part.headers[key]}`);
+      // multi line values are indented from the second line
+      const value = part.part.headers[key].replace(/(\r?\n)/g, '$1\t');
+      appender.push(`${key}: ${value}`);
     }
 
     appender.push('');
