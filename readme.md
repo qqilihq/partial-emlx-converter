@@ -77,6 +77,7 @@ Without the following modules I would probably be still working on this script (
 
 * [content-disposition](https://github.com/jshttp/content-disposition)
 * [content-type](https://github.com/jshttp/content-type)
+* [eml-format](https://github.com/papnkukn/eml-format)
 * [libqp](https://github.com/nodemailer/libqp)
 * [rfc2047](https://github.com/One-com/rfc2047)
 
