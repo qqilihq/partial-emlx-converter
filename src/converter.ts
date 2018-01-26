@@ -36,14 +36,15 @@ export function processEmlxs (inputDir: string, outputDir: string) {
 export function processEmlx (emlxFile: string): Promise<string> {
 
   const rawEmlx = fs.readFileSync(emlxFile, 'utf8');
-  const lines = rawEmlx.split(/\r?\n/);
+  const payload = extractPayload(rawEmlx);
 
-  const preprocessedEmlx = removePlistEpilogue(
-                                preprocessBoundaries(lines)).join(eol);
+  const lines = payload.split(/\r?\n/);
+
+  const preprocessedEmlx = preprocessBoundaries(lines).join(eol);
 
   const appender = [];
 
-  const headers = lines.slice(1 /* drop first line */, lines.indexOf('')).join(eol);
+  const headers = lines.slice(0, lines.indexOf('')).join(eol);
 
   return new Promise<string>((resolve, reject) => {
     emlformat.parse(preprocessedEmlx, (err, data: IContent) => {
@@ -194,36 +195,19 @@ function preprocessBoundaries (lines: string[]): string[] {
   return lines;
 }
 
-function removePlistEpilogue (lines: string[]): string[] {
-
-  // <?xml version="1.0" encoding="UTF-8"?>
-  // <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-  // <plist version="1.0">
-  // …
-  // </plist>
-
-  // go through the lines backward, and expect an </plist> at the end;
-  // then keep going upwards until the <?xml …> element;
-  let stripFrom = lines.length - 1;
-  let readContent = false;
-  for (let index = lines.length - 1; index >= 0; index--) {
-    if (lines[index].length === 0) { // skip empty lines
-      continue;
-    }
-    // end of epilogue, but only if it is at the end of the file
-    // (just to be sure not to strip away any plist strings which
-    // might occur *within* an email?!?!)
-    if (!readContent && lines[index] === '</plist>') {
-      continue;
-    }
-    readContent = true;
-    // ok, we found the beginning, strip away until here
-    if (lines[index] === '<?xml version="1.0" encoding="UTF-8"?>') {
-      stripFrom = index;
-      break;
-    }
+// emlx file contain the length of the 'payload' in the first line;
+// this allows to strip away the plist epilogue at the end of the
+// files easily
+function extractPayload (content: string): string {
+  const payloadLengthMatch = content.match(/^(\d+)\s+/);
+  if (!payloadLengthMatch) {
+    throw new Error('Invalid structure; content did not start with payload length as expected');
   }
-  return lines.slice(0, stripFrom);
+  const payloadLength = parseInt(payloadLengthMatch[1], 10);
+  return content.substring(
+    payloadLengthMatch[0].length,
+    payloadLengthMatch[0].length + payloadLength
+  );
 }
 
 // CLI only when module is not require'd
