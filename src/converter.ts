@@ -24,7 +24,7 @@ const base64lineLength = 76;
 export function processEmlxs (inputDir: string, outputDir: string) {
   glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
     if (err) throw err;
-    for (let f of files) {
+    for (const f of files) {
       console.log(`Processing ${f}`);
       const emlContent = await processEmlx(path.join(inputDir, f));
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(f))}.eml`);
@@ -62,7 +62,7 @@ export function processEmlx (emlxFile: string): Promise<string> {
         appender.push(data.body);
       }
 
-      resolve(headers + eol + eol + appender.join(eol));
+      resolve(headers + eol + eol + eol + appender.join(eol));
 
     });
   });
@@ -134,7 +134,7 @@ function getFilename (headers) {
   // this gives a good overview of the plethora of encoding types:
   // http://test.greenbytes.de/tech/tc2231/
 
-  let contentDisposition = headers['Content-Disposition'];
+  const contentDisposition = headers['Content-Disposition'];
 
   if (contentDisposition) {
 
@@ -150,11 +150,11 @@ function getFilename (headers) {
 
   }
 
-  let contentType = headers['Content-Type'];
+  const contentType = headers['Content-Type'];
 
   if (contentType) {
 
-    let parsed = parseContentType.parse(removeLinebreaks(contentType));
+    const parsed = parseContentType.parse(removeLinebreaks(contentType));
     return parsed.parameters.name;
 
   }
