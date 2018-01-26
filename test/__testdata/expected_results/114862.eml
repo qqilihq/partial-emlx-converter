@@ -1,0 +1,60 @@
+Return-Path: <philipp@philippkatz.de>
+X-Original-To: philipp@philippkatz.de
+Delivered-To: m0137cc3@dd34906.kasserver.com
+Received: from liliput4.fritz.box (port-92-195-65-145.dynamic.qsc.de [92.195.65.145])
+	by dd34906.kasserver.com (Postfix) with ESMTPSA id 194101700457
+	for <philipp@philippkatz.de>; Fri, 26 Jan 2018 17:44:32 +0100 (CET)
+From: Philipp Katz <philipp@philippkatz.de>
+Content-Type: multipart/alternative;
+ boundary="Apple-Mail=_4976E51E-FA6D-4250-BB0E-4735F5A2AD11"
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Subject: Lorem ipsum
+Message-Id: <D9035B79-5B16-4857-9F9D-E27D49BE1C1B@philippkatz.de>
+Date: Fri, 26 Jan 2018 17:44:31 +0100
+To: Philipp Katz <philipp@philippkatz.de>
+X-Mailer: Apple Mail (2.3273)
+X-KasLoop: m0137cc3
+
+
+--Apple-Mail=_4976E51E-FA6D-4250-BB0E-4735F5A2AD11
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
+
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy =
+eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam =
+voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet =
+clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit =
+amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam =
+nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, =
+sed diam voluptua. At vero eos et accusam et justo duo dolores et ea =
+rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem =
+ipsum dolor sit amet.
+
+http://example.com <http://example.com/>=
+
+--Apple-Mail=_4976E51E-FA6D-4250-BB0E-4735F5A2AD11
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset=us-ascii
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html =
+charset=3Dus-ascii"></head><body style=3D"word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space;" =
+class=3D"">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed =
+diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam =
+erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et =
+ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem =
+ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing =
+elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna =
+aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo =
+dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus =
+est Lorem ipsum dolor sit amet.<br class=3D""><div dir=3D"auto" class=3D""=
+ style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space;"><br class=3D""></div><div =
+dir=3D"auto" class=3D"" style=3D"word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><a =
+href=3D"http://example.com" =
+class=3D"">http://example.com</a></div></body></html>=
+
+--Apple-Mail=_4976E51E-FA6D-4250-BB0E-4735F5A2AD11--
