@@ -5,6 +5,7 @@ import * as emlformat from 'eml-format';
 import * as parseRfc2047 from 'rfc2047';
 import * as parseContentDisposition from 'content-disposition';
 import * as parseContentType from 'content-type';
+import * as libqp from 'libqp';
 
 interface IContent {
   headers: object;
@@ -19,7 +20,7 @@ interface IPart {
 /** CR+LF seems to be more common than just LF. */
 const eol = '\r\n';
 
-const base64lineLength = 76;
+const encodedLineLength = 76;
 
 /** Newline was inserted subsequently; needs to be stripped away afterwards. */
 const removeNewlineMarker = '__remove_newline__';
@@ -138,7 +139,9 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
       stripExtension(path.basename(emlxFile)),
       indexPath.join('.'),
       getFilename(part.part.headers));
-    part.part.body = wrap(fs.readFileSync(filePath).toString('base64'));
+    const encoding = part.part.headers['Content-Transfer-Encoding'];
+    const fileBuffer = fs.readFileSync(filePath);
+    part.part.body = encode(encoding, fileBuffer);
   }
 }
 
@@ -180,7 +183,7 @@ function removeLinebreaks (value: string): string {
 }
 
 function wrap (value: string): string {
-  return value.replace(new RegExp(`(.{${base64lineLength}})`, 'g'), `$1${eol}`);
+  return value.replace(new RegExp(`(.{${encodedLineLength}})`, 'g'), `$1${eol}`);
 }
 
 function stripExtension (fileName) {
@@ -224,6 +227,17 @@ function extractPayload (content: string): string {
     payloadLengthMatch[0].length,
     payloadLengthMatch[0].length + payloadLength
   );
+}
+
+function encode (encoding: string, data: Buffer): string {
+  switch (encoding) {
+    case 'base64':
+      return wrap(data.toString('base64'));
+    case 'quoted-printable':
+      return libqp.wrap(libqp.encode(data), encodedLineLength);
+    default:
+      throw new Error(`Unimplemented encoding: ${encoding}`);
+  }
 }
 
 // CLI only when module is not require'd
