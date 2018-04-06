@@ -27,7 +27,7 @@ $ node build/src/converter.js /path/to/input /path/to/result
 
 ## About the file formats
 
-**Disclaimer:** I figured out the following by reverse engineering. I cannot give any guarantee about the correctness. If you feel, that something should be corrected, please let me know.
+**Disclaimer:** I figured out the following by reverse engineering. I cannot give any guarantee about the correctness. If you feel, that something should be corrected, please let me know. 
 
 `.emlx` and `.partial.emlx` are similar to `.eml`, with the following peculiarities:
 
@@ -45,6 +45,12 @@ X-Original-To: john@example.com
 The number `2945` denotes, that the actual `.eml` payload is 2945 characters long, starting from the second line.
 
 At the end, these files contain an XML [property list](https://en.wikipedia.org/wiki/Property_list) epilogue, which holds some Mail.app-specific meta data. Using the given character length at the file’s beginning, this epilogue can be stripped away easily and an `.eml` file can be created.
+
+**Edit:** Later, I found those additional sources, which basically confirm my findings:
+* [Patching .emlx files](https://taoofmac.com/space/blog/2008/03/03/2211)
+* [emlx.py](https://gist.github.com/karlcow/5276813)
+* [emlx flags?](https://www.jwz.org/blog/2005/07/emlx-flags/)
+* [Documentation on Apple Mail's .emlx data structure(s) (for conversion purposes)?](https://stackoverflow.com/questions/884440/documentation-on-apple-mails-emlx-data-structures-for-conversion-purposes)
 
 ### .partial.emlx
 
