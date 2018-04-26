@@ -90,6 +90,21 @@ describe('converter', () => {
 
   });
 
+  describe('issue 1', () => {
+    // https://github.com/qqilihq/partial-emlx-converter/issues/1
+    let result: string;
+    before(async () => {
+      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'));
+      if (debug) {
+        fs.writeFileSync(path.join(os.homedir(), '114862.eml'), result, 'utf-8');
+      }
+    });
+
+    it('result has more than 2000 lines', () => {
+      expect(result.split('\n').length).to.be.greaterThan(2000);
+    });
+  });
+
   describe('.partial.emlx with missing attachment file -- #3', () => {
 
     // https://github.com/qqilihq/partial-emlx-converter/issues/3

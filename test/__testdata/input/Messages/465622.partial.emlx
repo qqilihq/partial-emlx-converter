@@ -1,0 +1,178 @@
+8210      
+Return-path: <jigyouka06@jsps.go.jp>
+Received: from mr28p00im-smtpin041.me.com ([17.110.71.40])
+ by ms42013.mac.com (Oracle Communications Messaging Server 7.0.5.38.0 64bit
+ (built Feb 26 2016)) with ESMTP id <0OQG00ITK7QVOV40@ms42013.mac.com> for
+ tetsuya.asai@me.com; Wed, 24 May 2017 08:32:55 +0000 (GMT)
+Original-recipient: rfc822;tetsuya.asai@me.com
+Received: from mailgate4.sys.hokudai.ac.jp
+ (mailgate4.sys.hokudai.ac.jp [133.87.1.143]) by mr28p00im-smtpin041.me.com
+ (Oracle Communications Messaging Server 7.0.5.38.0 64bit (built Feb 26 2016))
+ with ESMTP id <0OQG00H917QKO710@mr28p00im-smtpin041.me.com> for
+ tetsuya.asai@me.com (ORCPT tetsuya.asai@me.com); Wed,
+ 24 May 2017 08:32:55 +0000 (GMT)
+Authentication-results: mr21p00im-dmarcmilter008.me.com; dmarc=none
+ header.from=jsps.go.jp
+Authentication-results: mr21p00im-spfmilter010.me.com; spf=softfail
+ (mr21p00im-spfmilter010.me.com: domain of transitioning jigyouka06@jsps.go.jp
+ does not designate 133.87.1.143 as permitted sender)
+ smtp.mailfrom=jigyouka06@jsps.go.jp;
+Received-SPF: softfail (mr21p00im-spfmilter010.me.com: domain of transitioning
+ jigyouka06@jsps.go.jp does not designate 133.87.1.143 as permitted sender)
+ receiver=mr21p00im-spfmilter010.me.com; client-ip=133.87.1.143;
+ helo=mailgate4.sys.hokudai.ac.jp; envelope-from=jigyouka06@jsps.go.jp;
+Authentication-results: mr21p00im-dkimmilter009.me.com; dkim=none
+	reason="no signature"; dkim-adsp=none
+Received: from mailgate4.sys.hokudai.ac.jp (localhost [127.0.0.1])
+	by localhost.sys.hokudai.ac.jp (Postfix) with ESMTP id 75F7B280C56	for
+ <tetsuya.asai@me.com>; Wed, 24 May 2017 17:32:44 +0900 (JST)
+Received: from lalsie.ist.hokudai.ac.jp
+ (lalsie.ist.hokudai.ac.jp [133.87.128.121])	by mailgate4.sys.hokudai.ac.jp
+ (Postfix) with ESMTP id 394C62803CB	for <tetsuya.asai@me.com>; Wed,
+ 24 May 2017 17:32:44 +0900 (JST)
+Received: by lalsie.ist.hokudai.ac.jp (Postfix, from userid 77)
+	id 1C1A1E16CE893; Wed, 24 May 2017 17:32:44 +0900 (JST)
+Received: from murder ([unix socket])	by lalsie.ist.hokudai.ac.jp
+ (Cyrus v2.3.8-OS X Server 10.5:	9G7013y) with LMTPA;	Wed,
+ 24 May 2017 17:32:43 +0900
+Received: from mail2.hines.hokudai.ac.jp
+ (mail2.hines.hokudai.ac.jp [133.87.1.141])	by lalsie.ist.hokudai.ac.jp
+ (Postfix) with ESMTP id 1FF33E16CE88C	for <asai@lalsie.ist.hokudai.ac.jp>;
+ Wed, 24 May 2017 17:32:39 +0900 (JST)
+Received: from mail2.hines.hokudai.ac.jp (localhost [127.0.0.1])
+	by localhost.hines.hokudai.ac.jp (Postfix) with ESMTP id BCF97280839	for
+ <asai@lalsie.ist.hokudai.ac.jp>; Wed, 24 May 2017 17:32:38 +0900 (JST)
+Received: from mailbox1.hines.hokudai.ac.jp
+ (mbabalancer1tmp.hines.hokudai.ac.jp [133.87.1.124])
+	by mail2.hines.hokudai.ac.jp (Postfix) with ESMTP id A5B1D280387	for
+ <asai@lalsie.ist.hokudai.ac.jp>; Wed, 24 May 2017 17:32:38 +0900 (JST)
+Received: by mailbox1.hines.hokudai.ac.jp (Postfix)	id 9B1F0141CAA; Wed,
+ 24 May 2017 17:32:38 +0900 (JST)
+Delivered-to: vo0004@pop.sys.hokudai.ac.jp
+Received: from mailgate1.sys.hokudai.ac.jp
+ (mailgate1.sys.hokudai.ac.jp [133.87.1.144])	by mailbox1.hines.hokudai.ac.jp
+ (Postfix) with ESMTP id 79D8A141C9B	for <asai@ist.hokudai.ac.jp>; Wed,
+ 24 May 2017 17:32:38 +0900 (JST)
+Received: from mailgate1.sys.hokudai.ac.jp (localhost [127.0.0.1])
+	by localhost.sys.hokudai.ac.jp (Postfix) with ESMTP id E1D9C280A57	for
+ <asai@ist.hokudai.ac.jp>; Wed, 24 May 2017 17:32:37 +0900 (JST)
+Received: from mail.jsps.go.jp (mail.jsps.go.jp [113.157.212.51])
+	by mailgate1.sys.hokudai.ac.jp (Postfix) with SMTP id 8FFA3281F17	for
+ <asai@ist.hokudai.ac.jp>; Wed, 24 May 2017 17:32:37 +0900 (JST)
+Received: from 192.168.203.111	by mail.jsps.go.jp with MailGates ESMTP Server
+ V4.0(21996:0:AUTH_RELAY)	(envelope-from <jigyouka06@jsps.go.jp>); Wed,
+ 24 May 2017 17:28:24 +0900 (JST)
+Received: By OpenMail Mailer;Wed, 24 May 2017 17:28:19 +0900 (JST)
+From: jigyouka06 <jigyouka06@jsps.go.jp>
+Reply-to: jigyouka06 <jigyouka06@jsps.go.jp>
+Subject:
+ =?iso-2022-jp?B?GyRCIVobKEIxNTEbJEIwUTB3MnEhWxsoQjcvMTAoGyRCN24bKEIpGyRCOCY1ZjJxJEcbKEI=?=
+	=?iso-2022-jp?B?GyRCJE45VjFpJE4kNDBNTWobKEI=?=
+Message-id: <1495614499.22327.jigyouka06@jsps.go.jp>
+To: =?iso-2022-jp?B?MTUxGyRCTX04JiEmQFA2NkBoQDgbKEI=?= <kishiba@riken.jp>,
+ =?iso-2022-jp?B?MTUxGyRCTX04JiEmOmQwZiQ1JHMbKEI=?= <y.sakai@riken.jp>,
+ =?iso-2022-jp?B?MTUxGyRCMFFNfTgmISZAdUxuJDUkcxsoQg==?= <yasano@riken.jp>
+Date: Wed, 24 May 2017 17:28:19 +0900 (JST)
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary="---=c55v4UfFKVoLE)u581/wlqn::P"
+x-icloud-spam-score: 4111331
+ f=jsps.go.jp;e=jsps.go.jp;is=yes;ir=no;spf=softfail;dkim=none;dmarc=absent/(noPolicy);gdwl=absent;pps=ham;clxs=ham;clxw=neutral
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0
+ clxscore=203 suspectscore=1 malwarescore=0 phishscore=0 adultscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1701120000 definitions=main-1705240040
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10432:,,
+ definitions=2017-05-24_05:,, signatures=0
+X-CLX-Spam: false
+X-CLX-UnSpecialScore: 203
+X-CLX-Score: 203
+X-CLX-Shades: None
+X-MANTSH: 1TEIXR1gYG1oaGkNHB0tNT0ReQ0QZGBobEQpMQxcbHQQbGxsEGx0ZBBkYEBseGh8
+ aEQpMWRcYGhkRCllNF2RFRE8RCllJFxpxGhAadwYbEhlxGxkZEBp3BhgaBhoRClleF2hueREKQ
+ 04XSHNAHlt5aWJPXnNQQ11CYUIfTUUFbAVkeU5hUmhsHBwRClhcFxkEGgQZGwdNEh0YEhkdGQU
+ bHQQbGxsEGx8fBBsdHBAbHhofGhEKXlkXe31fRHgRCk1cFx4cGBEKTFoXaGFNQWsRCkxGF2kRC
+ kNaFxsbGQQbHx0EGBsYBB8bEQpCXhcbEQpEXhcZEQpCRRdga09Gbk9zaGNDUBEKQk4XY1J5c2x
+ 6TBtzaGwRCkJMF2IeZX0Ff3NrEk5bEQpCbBdnaE4bHwFFUwVaeBEKQkAXaXlaaEBHZVseXkURC
+ kJYF2BvZ2JaYGZvE3lNEQpCeBdpAUNQGEBGH31hHhEKcGgXbWJ9eUMeYXIBGVkQGRoRCnBoF2k
+ feRldeHtQb0gTEBkaEQpwaBduTGRoXW0deX5ZBRAZGhEKcGgXZwFOGlobaXlBWm4QGRoRCnBoF
+ 2Rlf1xeTR9tSEh5EBkaEQpwaxdlTUlCU3JiWH9EYhAZGhEKcEsXbRsFR10BQEdjGR0QGRoRCnB
+ sF2N7R3kYfEwafn4ZEBkaEQptfhcaEQpYTRdLEQ==
+x-dmarc-info: pass=none; dmarc-policy=(nopolicy); s=u0; d=u0
+x-dmarc-policy: none
+X-Sieve: CMU Sieve 2.3
+X-MailGates: (flag:1,DYNAMIC,BADHELO,RELAY,NOHOST,LAN:PASS)
+X-TM-AS-MML: disable
+X-TM-AS-Product-Ver: IMSS-7.1.0.1808-8.1.0.1062-23088.006
+X-TM-AS-Result: No--12.414-5.0-31-10
+X-imss-scan-details: No--12.414-5.0-31-10
+X-TMASE-MatchedRID: 2Bn7aWIyHOlITndh1lLRAco3MPo0IsVY10JS27S5iOC6d0BSQXmooNsR
+	ucQ3famoy976NcJvjNyO5h85Y3kVzsFuWk3s9i26dJx8DeL7w1U1qyk6JBL9QRszDB31mgRU9yj
+	kS/c2esP2xksowIMM8UGtgCvGd+WjT6ZSOv0rTvXIXI7jez0co/40cYrO3NcPrXtAvEYfMj+m+q
+	xLziOMjxjnf0GraH3n6jorNw6aj8TRPGARJzUW5tN7Th95SDWMTk0n9FIv9T914LGFnJ4HKsuwt
+	o18nQYXfscmNdQ2NfheR6oS5kl5Gyceaen+FUWDVeyRbPNm8BHfUBLCCnOE5A5jgLByHAmDdlJQ
+	ukZ/XKwvinpBIUypEbqhbSeDz5e89iyPeSeQLkmdlQIznlFastMBjbNkhvPmdeLR/j6sbTlS0xm
+	ocyq0oReXYs522K77vV1H9ic43StP8HPxfwKez/gbqOEN5FTKIeaM1LLgEiIHA64fRbkFm3nhQE
+	B6FTWSeqpTqNzxrRTVFijKmPfadFvCnk1z0Os6+Fxgmm6pcUiXJa9fz1HXAye+SALdS0GPhHVSC
+	N3PwjiwQy5ucSL7Lbje4H5xgGWN7JRr5nsBnCdTIM9K8a7WqIiMgTQPrl8Jv/uzvgByLLPsQ18L
+	YGEm9615DKuy+f+w
+
+
+-----=c55v4UfFKVoLE)u581/wlqn::P
+Content-Type: text/plain;
+	charset=iso-2022-jp
+
+7月10日研究会ご講演者各位
+(BCC配信をさせて頂いております)
+
+
+お世話になっております。
+日本学術振興会の須賀でございます。
+
+この度は、ご多忙の中
+平成29年7月10日に予定をしております
+当委員会の研究会におきまして
+ご講演をお引き受け頂き誠にありがとうございます。
+
+研究会の概要が決まりましたので、
+添付資料にてご案内をさせて頂きます。
+また、題目が決まり次第ご連絡を頂けると幸甚です。
+
+何卒宜しく御願い申し上げます。
+*********************************************
+件名に委員会番号のご記入を御願い致します。
+須賀　英子（eiko suga)
+〒102-0083 
+東京都千代田区麹町5-3-1
+麹町ビジネスセンター 7F
+独立行政法人 日本学術振興会
+研究事業部 研究事業課 産学協力係
+TEL：03-3263-1728 
+FAX：03-3263-1716
+E-mail：jigyouka06@jsps.go.jp
+*********************************************
+
+
+-----=c55v4UfFKVoLE)u581/wlqn::P
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename*=utf-8''7.10%5F%E7%AC%AC2%E5%9B%9E%E7%A0%94%E7%A9%B6%E4%BC%9A.pdf
+Content-Type: application/pdf;
+	name*=utf-8''7.10%5F%E7%AC%AC2%E5%9B%9E%E7%A0%94%E7%A9%B6%E4%BC%9A.pdf
+X-Apple-Content-Length: 206814
+
+
+-----=c55v4UfFKVoLE)u581/wlqn::P--
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>conversation-id</key>
+	<integer>0</integer>
+	<key>date-received</key>
+	<integer>1495614775</integer>
+	<key>flags</key>
+	<integer>25803555841</integer>
+	<key>remote-id</key>
+	<string>20004</string>
+</dict>
+</plist>

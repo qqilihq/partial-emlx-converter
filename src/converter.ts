@@ -44,7 +44,11 @@ export function processEmlxs (inputDir: string, outputDir: string, ignoreMissing
 
 export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
 
-  const rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
+  let rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
+
+  // dirty fix for https://github.com/qqilihq/partial-emlx-converter/issues/1
+  rawEmlx = rawEmlx.replace(/^Content-Type:\s/mi, 'Content-Type: ');
+
   const payload = extractPayload(rawEmlx);
 
   const lines = payload.split(/\r?\n/);
