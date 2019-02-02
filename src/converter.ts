@@ -23,7 +23,7 @@ const eol = '\r\n';
 const encodedLineLength = 76;
 
 /** Newline was inserted subsequently; needs to be stripped away afterwards. */
-const removeNewlineMarker = '__remove_newline__';
+const removeNewlineMarker = eol + '__remove_newline__' + eol;
 
 export function processEmlxs (inputDir: string, outputDir: string) {
   glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
@@ -91,7 +91,7 @@ function writeBody (parts: IPart[], appender: string[]) {
     // same boundary character
     appender.push('--' + part.boundary);
     if (boundary && part.boundary !== boundary) {
-      throw new Error('Different boundary strings');
+      throw new Error(`Different boundary strings (expected '${boundary}', got: '${part.boundary}')`);
     }
     boundary = part.boundary;
 
