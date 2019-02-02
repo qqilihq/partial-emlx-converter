@@ -88,7 +88,7 @@ describe('converter', () => {
       expect(result.split('\n').length).to.eql(61);
     });
 
-    it('exactly equals the exptected result', () => {
+    it('exactly equals the expected result', () => {
       expect(result).to.eql(expectedResult);
     });
 
