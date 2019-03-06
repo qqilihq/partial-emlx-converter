@@ -25,19 +25,19 @@ const encodedLineLength = 76;
 /** Newline was inserted subsequently; needs to be stripped away afterwards. */
 const removeNewlineMarker = eol + '__remove_newline__' + eol;
 
-export function processEmlxs (inputDir: string, outputDir: string) {
+export function processEmlxs (inputDir: string, outputDir: string, ignoreMissingAttachments?: boolean) {
   glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
     if (err) throw err;
     for (const f of files) {
       console.log(`Processing ${f}`);
-      const emlContent = await processEmlx(path.join(inputDir, f));
+      const emlContent = await processEmlx(path.join(inputDir, f), ignoreMissingAttachments);
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(f))}.eml`);
       fs.writeFileSync(resultPath, emlContent);
     }
   });
 }
 
-export function processEmlx (emlxFile: string): Promise<string> {
+export function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
 
   const rawEmlx = fs.readFileSync(emlxFile, 'utf8');
   const payload = extractPayload(rawEmlx);
@@ -56,7 +56,7 @@ export function processEmlx (emlxFile: string): Promise<string> {
 
       if (Array.isArray(data.body)) {
 
-        transform(data.body, emlxFile);
+        transform(data.body, emlxFile, ignoreMissingAttachments);
 
         // write the eml data (do not use read/build from 'eml-format',
         // because they flatten the structure)
@@ -116,18 +116,18 @@ function writeBody (parts: IPart[], appender: string[]) {
   appender.push('--' + boundary + '--');
 }
 
-function transform (parts: IPart[], emlxFile: string) {
-  parts.forEach((part, index) => transformRec(part, emlxFile, [ index + 1 ]));
+function transform (parts: IPart[], emlxFile: string, ignoreMissingAttachments: boolean) {
+  parts.forEach((part, index) => transformRec(part, emlxFile, [ index + 1 ], ignoreMissingAttachments));
 }
 
 // process the body parts (recursively);
 // in case there's 'X-Apple-Content-Length'
 // attribute, add the actual base64 content
 // to the part and remove the property
-function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
+function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignoreMissingAttachments: boolean) {
   if (Array.isArray(part.part.body)) {
     part.part.body.forEach((part, index) =>
-      transformRec(part, emlxFile, indexPath.concat(index + 1)));
+      transformRec(part, emlxFile, indexPath.concat(index + 1), ignoreMissingAttachments));
   } else
   // 'X-Apple-Content-Length' denotes an external attachment
   if (part.part.headers['X-Apple-Content-Length']) {
@@ -140,7 +140,17 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[]) {
       indexPath.join('.'),
       getFilename(part.part.headers));
     const encoding = part.part.headers['Content-Transfer-Encoding'];
-    const fileBuffer = fs.readFileSync(filePath);
+    let fileBuffer;
+    try {
+      fileBuffer = fs.readFileSync(filePath);
+    } catch (e) {
+      if (e.code === 'ENOENT' && ignoreMissingAttachments) {
+        console.log(`[warn] ${filePath} does not exist`);
+        fileBuffer = new Buffer(0);
+      } else {
+        throw e;
+      }
+    }
     part.part.body = encode(encoding, fileBuffer)
                       // make sure, that we use CR+LF everywhere
                       .replace(/\r?\n/g, eol);
@@ -254,10 +264,14 @@ function encode (encoding: string, data: Buffer): string {
 if (require.main === module) {
   const args = process.argv.slice(2);
 
-  if (args.length !== 2) {
+  if (args.length < 2) {
     console.log(`${__filename} input_directory output_directory`);
     process.exit(1);
   }
+  let ignoreMissingAttachments = false;
+  if (args.length > 2) {
+    ignoreMissingAttachments = args[2] === '--ignoreMissingAttachments';
+  }
 
-  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1]);
+  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreMissingAttachments);
 }

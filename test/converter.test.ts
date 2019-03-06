@@ -5,10 +5,10 @@ import * as converter from '../src/converter';
 import * as fs from 'fs';
 import * as os from 'os';
 
-describe('converter', () => {
+/** enable to write results to home dir. */
+const debug = false;
 
-  /** enable to write results to home dir. */
-  const debug = false;
+describe('converter', () => {
 
   describe('.partial.emlx (contains external attachments)', () => {
     let result: string;
@@ -17,9 +17,7 @@ describe('converter', () => {
     before(async () => {
       result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'));
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114892.eml'), 'utf-8');
-      if (debug) {
-        fs.writeFileSync(path.join(os.homedir(), '114892.eml'), result, 'utf-8');
-      }
+      writeForDebugging(result, '114892.eml');
     });
 
     it('encodes quoted-printable in text.txt attachment', () => {
@@ -79,9 +77,7 @@ describe('converter', () => {
     before(async () => {
       result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'));
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114862.eml'), 'utf-8');
-      if (debug) {
-        fs.writeFileSync(path.join(os.homedir(), '114862.eml'), result, 'utf-8');
-      }
+      writeForDebugging(result, '114862.eml');
     });
 
     it('result has 61 lines', () => {
@@ -94,8 +90,37 @@ describe('converter', () => {
 
   });
 
+  describe('.partial.emlx with missing attachment file -- #3', () => {
+
+    // https://github.com/qqilihq/partial-emlx-converter/issues/3
+    it('fails per default', async () => {
+      try {
+        await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'), false);
+        expect().fail();
+      } catch (e) {
+        expect(e.code).to.eql('ENOENT');
+      }
+    });
+
+    it('does not fail when flag is set', async () => {
+      try {
+        const result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'), true);
+        writeForDebugging(result, '114863.eml');
+      } catch (e) {
+        expect().fail();
+      }
+    });
+
+  });
+
 });
 
 function extractHeader (input: string): string {
   return input.substring(0, input.indexOf('\r\n\r\n'));
+}
+
+function writeForDebugging (result: string, filename: string) {
+  if (debug) {
+    fs.writeFileSync(path.join(os.homedir(), filename), result, 'utf-8');
+  }
 }

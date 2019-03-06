@@ -13,17 +13,19 @@ Use a current version of [Node.js](https://nodejs.org/en/) (built with v6.11.0).
 
 ```
 $ yarn
-$ yarn run test
-$ yarn run build
+$ yarn test
+$ yarn build
 ```
 
 ## Run
 
-Run the script with exactly two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
+Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
 
 ```
 $ node build/src/converter.js /path/to/input /path/to/result
 ```
+
+Optionally, you can specify `--ignoreMissingAttachments` as third argument. This way, no errors will be thrown in case an attachment does not exist.
 
 ## About the file formats
 
