@@ -146,7 +146,7 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignor
     } catch (e) {
       if (e.code === 'ENOENT' && ignoreMissingAttachments) {
         console.log(`[warn] ${filePath} does not exist`);
-        fileBuffer = new Buffer(0);
+        fileBuffer = Buffer.alloc(0);
       } else {
         throw e;
       }
