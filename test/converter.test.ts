@@ -113,6 +113,21 @@ describe('converter', () => {
 
   });
 
+  describe('.partial.emlx with attachments without given filename -- #3', () => {
+
+    let result: string;
+
+    before(async () => {
+      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'));
+      writeForDebugging(result, '114894.eml');
+    });
+
+    it('encodes base64 in image001.png attachment', () => {
+      expect(result).to.contain('iVBORw0KGgoAAAANSUhE');
+    });
+
+  });
+
 });
 
 function extractHeader (input: string): string {

@@ -132,13 +132,22 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignor
   // 'X-Apple-Content-Length' denotes an external attachment
   if (part.part.headers['X-Apple-Content-Length']) {
     delete part.part.headers['X-Apple-Content-Length'];
-    const filePath = path.join(
+    const attachmentDirectoryPath = path.join(
       path.dirname(emlxFile),
       '..',
       'Attachments',
       stripExtension(path.basename(emlxFile)),
-      indexPath.join('.'),
-      getFilename(part.part.headers));
+      indexPath.join('.')
+    );
+    // first try to get the name as explicitly specified in the email text
+    // (this seems like the most reliable way), but if that does not work,
+    // check the `Attachments` directory structure. See:
+    // https://github.com/qqilihq/partial-emlx-converter/issues/3
+    let fileName = getFilenameFromEmail(part.part.headers);
+    if (!fileName) {
+      fileName = getFilenameFromFileSystem(attachmentDirectoryPath);
+    }
+    const filePath = path.join(attachmentDirectoryPath, fileName);
     const encoding = part.part.headers['Content-Transfer-Encoding'];
     let fileBuffer;
     try {
@@ -157,7 +166,7 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignor
   }
 }
 
-function getFilename (headers) {
+function getFilenameFromEmail (headers: object) {
 
   // this gives a good overview of the plethora of encoding types:
   // http://test.greenbytes.de/tech/tc2231/
@@ -188,6 +197,30 @@ function getFilename (headers) {
   }
 
   return null;
+}
+
+/**
+ * In case we cannot extract the attachment filename from the
+ * email, we detrmine it by looking into the file system. We
+ * expect, that the corresponding attachment directory
+ * (e.g. `1.2`) contains exactly *one* file (ignoring files
+ * starting with a `.`, to prevent errors when a `.DS_Store`
+ * exists).
+ *
+ * This is necessary, because Mail.app uses a language-specific
+ * default name for attachments without explicitly given
+ * file name (e.g. 'Mail-Anhang.jpeg' on a German system).
+ *
+ * @param pathToDirectory Path to the attachment directory (e.g. `.../1.2`)
+ */
+function getFilenameFromFileSystem (pathToDirectory: string) {
+  // ignore .dot files, e.g. `.DS_Store`
+  const files = fs.readdirSync(pathToDirectory).filter(file => !file.startsWith('.'));
+  if (files.length !== 1) {
+    throw new Error(`Couldn’t determine attachment; expected '${pathToDirectory}' ` +
+                    `to contain one file, but there were: ${files.join(', ')}`);
+  }
+  return files[0];
 }
 
 function removeLinebreaks (value: string): string {
