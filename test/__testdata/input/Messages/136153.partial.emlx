@@ -1,0 +1,77 @@
+3007      
+Return-Path: <sender@example.net>
+Delivery-Date: Thu, 21 Apr 2011 15:56:25 +0200
+Received: from mo-p00-ob.rzone.de (mo-p00-ob.rzone.de [81.169.146.162]) by
+ mx.kundenserver.de (node=mxbap2) with ESMTP (Nemesis) id
+ 0MS3qM-1QOUyY3KTi-00Sbdz for receiver@example.com; Thu, 21 Apr 2011
+ 15:56:24 +0200
+Received: from [192.168.6.22] (p549D7C2A.dip.t-dialin.net [84.157.124.42]) by
+ post.strato.de (mrclete mo7) (RZmta 25.17) with (AES128-SHA encrypted) ESMTPA
+ id 601367n3LDoDRB for <receiver@example.com>; Thu, 21 Apr 2011 15:55:38
+ +0200 (MEST)
+Message-Id: <95C37DAA-1234-1234-1234-DDE1AF31234B@example.net>
+From: Sender Sender <sender@example.net>
+To: receiver@example.com
+Content-Type: multipart/mixed; boundary=Apple-Mail-7-816907086
+Mime-Version: 1.0 (Apple Message framework v936)
+Subject: Excel Tabelle
+X-Priority: 3 (Normal)
+Date: Thu, 21 Apr 2011 15:55:37 +0200
+References: <4F820EF9-1234-1234-1234-C89DAD67EA5F@example.net>
+X-Mailer: Apple Mail (2.936)
+Envelope-To: receiver@example.com
+
+
+--Apple-Mail-7-816907086
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN;
+	charset=ISO-8859-1;
+	delsp=yes;
+	format=flowed
+
+
+wie eben besprochen.
+
+:-)
+Lieben Gru=DF
+
+
+--Apple-Mail-7-816907086
+Content-Transfer-Encoding: BASE64
+Content-Disposition: ATTACHMENT;
+	filename*0="ReallyReallyReallyReallyReallyReallyReallyReallyReallyReallylong_";
+	filename*1=filename.xls
+Content-Type: APPLICATION/VNDMS-EXCEL;
+	filename*0="ReallyReallyReallyReallyReallyReallyReallyReallyReallyReallylong_";
+	filename*1=filename.xls
+	x-unix-mode=0666
+X-Apple-Content-Length: 702736
+
+
+--Apple-Mail-7-816907086
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN;
+	charset=ISO-8859-1;
+	format=flowed
+
+>>
+>>
+>
+>
+
+
+--Apple-Mail-7-816907086--
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>date-last-viewed</key>
+	<integer>0</integer>
+	<key>date-received</key>
+	<integer>1303394185</integer>
+	<key>flags</key>
+	<integer>25803555845</integer>
+	<key>remote-id</key>
+	<string>3682</string>
+</dict>
+</plist>
