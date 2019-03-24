@@ -180,29 +180,30 @@ function getFilenameFromEmail (headers: object) {
   // this gives a good overview of the plethora of encoding types:
   // http://test.greenbytes.de/tech/tc2231/
 
-  const contentDisposition = headers['Content-Disposition'];
-
-  if (contentDisposition) {
-
-    // this also takes care of RFC 2231/5987
-    // https://www.greenbytes.de/tech/webdav/rfc5987.html
-    const parsed = parseContentDisposition.parse(removeLinebreaks(contentDisposition));
-
-    // if applicable, decode RFC 2047 encoded filename
-    // (this will just return the original name, in case
-    // RFC 2047 does not apply)
-    // https://www.greenbytes.de/tech/webdav/rfc2047.html
-    return parseRfc2047.decode(parsed.parameters.filename);
-
+  try {
+    const contentDisposition = headers['Content-Disposition'];
+    if (contentDisposition) {
+      // this also takes care of RFC 2231/5987
+      // https://www.greenbytes.de/tech/webdav/rfc5987.html
+      const parsed = parseContentDisposition.parse(removeLinebreaks(contentDisposition));
+      // if applicable, decode RFC 2047 encoded filename
+      // (this will just return the original name, in case
+      // RFC 2047 does not apply)
+      // https://www.greenbytes.de/tech/webdav/rfc2047.html
+      return parseRfc2047.decode(parsed.parameters.filename);
+    }
+  } catch (e) {
+    // ignore
   }
 
-  const contentType = headers['Content-Type'];
-
-  if (contentType) {
-
-    const parsed = parseContentType.parse(removeLinebreaks(contentType));
-    return parsed.parameters.name;
-
+  try {
+    const contentType = headers['Content-Type'];
+    if (contentType) {
+      const parsed = parseContentType.parse(removeLinebreaks(contentType));
+      return parsed.parameters.name;
+    }
+  } catch (e) {
+    // ignore
   }
 
   return null;
