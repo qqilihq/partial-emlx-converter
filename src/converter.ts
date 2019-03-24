@@ -9,6 +9,7 @@ import * as parseContentDisposition from 'content-disposition';
 import * as parseContentType from 'content-type';
 import * as libqp from 'libqp';
 import * as ProgressBar from 'progress';
+import * as util from 'util';
 
 interface IContent {
   headers: object;
@@ -36,14 +37,14 @@ export function processEmlxs (inputDir: string, outputDir: string, ignoreMissing
       bar.tick({ file });
       const emlContent = await processEmlx(path.join(inputDir, file), ignoreMissingAttachments);
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
-      fs.writeFileSync(resultPath, emlContent);
+      await fs.promises.writeFile(resultPath, emlContent);
     }
   });
 }
 
-export function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
+export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
 
-  const rawEmlx = fs.readFileSync(emlxFile, 'utf8');
+  const rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
   const payload = extractPayload(rawEmlx);
 
   const lines = payload.split(/\r?\n/);
@@ -54,29 +55,29 @@ export function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolea
 
   const headers = lines.slice(0, lines.indexOf('')).join(eol);
 
-  return new Promise<string>((resolve, reject) => {
-    emlformat.parse(preprocessedEmlx, (err, data: IContent) => {
-      if (err) return reject(err);
+  const data = await parseEmlFormat(preprocessedEmlx);
 
-      if (Array.isArray(data.body)) {
+  if (Array.isArray(data.body)) {
 
-        transform(data.body, emlxFile, ignoreMissingAttachments);
+    await transform(data.body, emlxFile, ignoreMissingAttachments);
 
-        // write the eml data (do not use read/build from 'eml-format',
-        // because they flatten the structure)
-        writeBody(data.body, appender);
+    // write the eml data (do not use read/build from 'eml-format',
+    // because they flatten the structure)
+    writeBody(data.body, appender);
 
-      } else {
-        appender.push(data.body);
-      }
+  } else {
+    appender.push(data.body);
+  }
 
-      // fix: remove the newline markers (and the following newline :)
-      const payloadResult = appender.join(eol).replace(new RegExp(removeNewlineMarker + eol, 'g'), '');
+  // fix: remove the newline markers (and the following newline :)
+  const payloadResult = appender.join(eol).replace(new RegExp(removeNewlineMarker + eol, 'g'), '');
 
-      resolve(headers + eol + eol + eol + payloadResult + eol);
+  return headers + eol + eol + eol + payloadResult + eol;
 
-    });
-  });
+}
+
+function parseEmlFormat (input: string): Promise<IContent> {
+  return util.promisify(emlformat.parse)(input);
 }
 
 function writeBody (parts: IPart[], appender: string[]) {
@@ -120,18 +121,21 @@ function writeBody (parts: IPart[], appender: string[]) {
   appender.push('--' + boundary + '--');
 }
 
-function transform (parts: IPart[], emlxFile: string, ignoreMissingAttachments: boolean) {
-  parts.forEach((part, index) => transformRec(part, emlxFile, [ index + 1 ], ignoreMissingAttachments));
+async function transform (parts: IPart[], emlxFile: string, ignoreMissingAttachments: boolean) {
+  for (let index = 0; index < parts.length; index++) {
+    await transformRec(parts[index], emlxFile, [ index + 1 ], ignoreMissingAttachments);
+  }
 }
 
 // process the body parts (recursively);
 // in case there's 'X-Apple-Content-Length'
 // attribute, add the actual base64 content
 // to the part and remove the property
-function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignoreMissingAttachments: boolean) {
+async function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignoreMissingAttachments: boolean) {
   if (Array.isArray(part.part.body)) {
-    part.part.body.forEach((part, index) =>
-      transformRec(part, emlxFile, indexPath.concat(index + 1), ignoreMissingAttachments));
+    for (let index = 0; index < part.part.body.length; index++) {
+      await transformRec(part.part.body[index], emlxFile, indexPath.concat(index + 1), ignoreMissingAttachments);
+    }
   } else
   // 'X-Apple-Content-Length' denotes an external attachment
   if (part.part.headers['X-Apple-Content-Length']) {
@@ -149,13 +153,13 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignor
     // https://github.com/qqilihq/partial-emlx-converter/issues/3
     const fileNames = [
       getFilenameFromEmail(part.part.headers),
-      getFilenameFromFileSystem(attachmentDirectoryPath)
+      await getFilenameFromFileSystem(attachmentDirectoryPath)
     ].filter(f => !!f);
     let fileBuffer;
     for (const fileName of fileNames) {
       const filePath = path.join(attachmentDirectoryPath, fileName);
       try {
-        fileBuffer = fs.readFileSync(filePath);
+        fileBuffer = await fs.promises.readFile(filePath);
         break;
       } catch (e) {
         // ignore here, keep trying
@@ -226,10 +230,10 @@ function getFilenameFromEmail (headers: object) {
  * @param pathToDirectory Path to the attachment directory (e.g. `.../1.2`)
  * @returns The filname, or `null` in case it could not be determined.
  */
-function getFilenameFromFileSystem (pathToDirectory: string) {
+async function getFilenameFromFileSystem (pathToDirectory: string) {
   try {
     // ignore .dot files, e.g. `.DS_Store`
-    const files = fs.readdirSync(pathToDirectory).filter(file => !file.startsWith('.'));
+    const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.'));
     if (files.length !== 1) {
       console.log(`Couldn’t determine attachment; expected '${pathToDirectory}' ` +
                   `to contain one file, but there were: ${files.join(', ')}`);
