@@ -25,10 +25,22 @@ $ yarn build
 Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
 
 ```
-$ node build/src/converter.js /path/to/input /path/to/result
+$ node dist/converter.js /path/to/input /path/to/result
 ```
 
 Optionally, you can specify `--ignoreMissingAttachments` as third argument. This way, no errors will be thrown in case an attachment does not exist.
+
+## Releasing to NPM
+
+Commit all changes and run the following:
+
+```shell
+$ npm login
+$ npm version <update_type>
+$ npm publish
+```
+
+… where `<update_type>` is one of `patch`, `minor`, or `major`. This will update the `package.json`, and create a tagged Git commit with the version number.
 
 ## About the file formats
 

@@ -6,7 +6,7 @@ npm-debug.log*
 # Dependency directories
 node_modules/
 
-build/
+dist/
 
 .nyc_output
 coverage
