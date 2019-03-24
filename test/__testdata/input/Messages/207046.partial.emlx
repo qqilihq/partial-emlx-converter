@@ -1,0 +1,60 @@
+1595      
+From: =?utf-8?Q?Sender?= <sender@example.com>
+Content-Type: multipart/mixed;
+	boundary="Apple-Mail=_A4FD5563-49B0-4CA2-AF11-25FBF5D2DAE6"
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Subject: =?utf-8?Q?Bericht?=
+X-Universally-Unique-Identifier: 0D2BFF40-2123-1234-1234-A4D8444F65D1
+Message-Id: <6F3DE28E-1234-1234-1234-A859B8111234@example.com>
+Date: Wed, 7 Jun 2017 21:14:38 +0200
+To: receiver@example.com
+
+
+--Apple-Mail=_A4FD5563-49B0-4CA2-AF11-25FBF5D2DAE6
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
+
+Guten Tag,
+
+Ich habe einen Bericht f=C3=BCr Ihre Unterlagen erhalten, welchen ich an =
+diese E-Mail angehangen habe.
+
+Freundliche Gr=C3=BC=C3=9Fe
+
+
+--Apple-Mail=_A4FD5563-49B0-4CA2-AF11-25FBF5D2DAE6
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+	filename*=utf-8''Tu%CC%88bingen.pdf
+Content-Type: application/pdf;
+	name*=utf-8''Tu%CC%88bingen.pdf;
+	x-unix-mode=0755
+X-Apple-Content-Length: 1170460
+
+
+--Apple-Mail=_A4FD5563-49B0-4CA2-AF11-25FBF5D2DAE6
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+
+
+
+
+
+--Apple-Mail=_A4FD5563-49B0-4CA2-AF11-25FBF5D2DAE6--
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>date-last-viewed</key>
+	<integer>1496863637</integer>
+	<key>date-received</key>
+	<integer>1496862878</integer>
+	<key>flags</key>
+	<integer>8623685633</integer>
+	<key>remote-id</key>
+	<string>4806</string>
+</dict>
+</plist>

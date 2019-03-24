@@ -1,0 +1,66 @@
+2698
+Delivered-To: recipient@gmail.com
+Received: by 10.194.5.168 with SMTP id t8csp136663wjt; Mon, 3 Feb 2014
+ 11:53:43 -0800 (PST)
+X-Received: by 10.14.3.130 with SMTP id 2mr45654373eeh.36.1391457223170; Mon,
+ 03 Feb 2014 11:53:43 -0800 (PST)
+Return-Path: <sender@gmail.net>
+Received: from moutng.kundenserver.de (moutng.kundenserver.de. [212.227.17.8])
+ by mx.google.com with ESMTPS id w5si15771503eef.193.2014.02.03.11.53.42 for
+ <recipient@gmail.com> (version=TLSv1 cipher=RC4-SHA bits=128/128);
+ Mon, 03 Feb 2014 11:53:43 -0800 (PST)
+Received-SPF: neutral (google.com: 212.227.17.8 is neither permitted nor
+ denied by best guess record for domain of sender@gmail.net)
+ client-ip=234.227.214.8;
+Authentication-Results: mx.google.com; spf=neutral (google.com: 212.227.17.8
+ is neither permitted nor denied by best guess record for domain of
+ sender@gmail.net
+Received: from [10.0.0.211] (dsl.dslaccess.de [231.231.213.111]) by
+ mrelayeu.kundenserver.de (node=mreue006) with ESMTP (Nemesis) id
+ 0MQYci-1Vdkghr08x2-00Tp8m; Mon, 03 Feb 2014 20:53:42 +0100
+Message-ID: <52EFF3C1.2060909@gmail.net>
+Date: Mon, 03 Feb 2014 20:53:37 +0100
+From: Gerd Scholz <sender@gmail.net>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:24.0) Gecko/20100101
+ Thunderbird/24.2.0
+MIME-Version: 1.0
+To: =?ISO-8859-15?Q?Empfaenger?= <recipient@gmail.com>
+Subject: komische Warnmeldung; Anhang
+Content-Type: multipart/mixed; boundary="------------040005040409050603090005"
+
+
+
+--------------040005040409050603090005
+Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN;
+	charset=ISO-8859-15;
+	format=flowed
+
+Beim Lesen deiner E-mail erscheint eine Warnmeldung.
+
+
+
+--------------040005040409050603090005
+Content-Transfer-Encoding: BASE64
+Content-Disposition: ATTACHMENT;
+	filename=Warnmeldung_unbekannter_Art
+Content-Type: IMAGE/PNG;
+	name=Warnmeldung_unbekannter_Art
+X-Apple-Content-Length: 138412
+
+
+--------------040005040409050603090005--
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>date-last-viewed</key>
+	<integer>0</integer>
+	<key>date-received</key>
+	<integer>1391457223</integer>
+	<key>flags</key>
+	<integer>25770001409</integer>
+	<key>remote-id</key>
+	<string>30</string>
+</dict>
+</plist>

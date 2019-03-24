@@ -98,7 +98,7 @@ describe('converter', () => {
         await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'), false);
         expect().fail();
       } catch (e) {
-        expect(e.code).to.eql('ENOENT');
+        expect(e.message).to.contain('Could not get attachment file');
       }
     });
 
@@ -144,6 +144,20 @@ describe('converter', () => {
 
     it('fixes end boundary string with one hyphen to two hyphens', () => {
       expect(result).to.match(/.*--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--\s*$/);
+    });
+
+  });
+
+  describe('.partial.emlx with filename without extension', () => {
+    let result: string;
+
+    before(async () => {
+      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'));
+      writeForDebugging(result, '229417.eml');
+    });
+
+    it('contains encoded attachment', () => {
+      expect(result).to.contain('iVBORw0KGgoAAAANSUhE');
     });
 
   });

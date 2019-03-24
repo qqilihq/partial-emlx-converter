@@ -145,23 +145,30 @@ function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignor
     // (this seems like the most reliable way), but if that does not work,
     // check the `Attachments` directory structure. See:
     // https://github.com/qqilihq/partial-emlx-converter/issues/3
-    let fileName = getFilenameFromEmail(part.part.headers);
-    if (!fileName) {
-      fileName = getFilenameFromFileSystem(attachmentDirectoryPath);
-    }
-    const filePath = path.join(attachmentDirectoryPath, fileName);
-    const encoding = part.part.headers['Content-Transfer-Encoding'];
+    const fileNames = [
+      getFilenameFromEmail(part.part.headers),
+      getFilenameFromFileSystem(attachmentDirectoryPath)
+    ].filter(f => !!f);
     let fileBuffer;
-    try {
-      fileBuffer = fs.readFileSync(filePath);
-    } catch (e) {
-      if (e.code === 'ENOENT' && ignoreMissingAttachments) {
-        console.log(`[warn] ${filePath} does not exist`);
-        fileBuffer = Buffer.alloc(0);
-      } else {
-        throw e;
+    for (const fileName of fileNames) {
+      const filePath = path.join(attachmentDirectoryPath, fileName);
+      try {
+        fileBuffer = fs.readFileSync(filePath);
+        break;
+      } catch (e) {
+        // ignore here, keep trying
       }
     }
+    if (!fileBuffer) {
+      const message = `Could not get attachment file (tried ${fileNames.join(', ')})`;
+      if (ignoreMissingAttachments) {
+        console.log(`[warn] ${message}`);
+        fileBuffer = Buffer.alloc(0);
+      } else {
+        throw new Error(message);
+      }
+    }
+    const encoding = part.part.headers['Content-Transfer-Encoding'];
     part.part.body = encode(encoding, fileBuffer)
                       // make sure, that we use CR+LF everywhere
                       .replace(/\r?\n/g, eol);
@@ -214,15 +221,23 @@ function getFilenameFromEmail (headers: object) {
  * file name (e.g. 'Mail-Anhang.jpeg' on a German system).
  *
  * @param pathToDirectory Path to the attachment directory (e.g. `.../1.2`)
+ * @returns The filname, or `null` in case it could not be determined.
  */
 function getFilenameFromFileSystem (pathToDirectory: string) {
-  // ignore .dot files, e.g. `.DS_Store`
-  const files = fs.readdirSync(pathToDirectory).filter(file => !file.startsWith('.'));
-  if (files.length !== 1) {
-    throw new Error(`Couldn’t determine attachment; expected '${pathToDirectory}' ` +
-                    `to contain one file, but there were: ${files.join(', ')}`);
+  try {
+    // ignore .dot files, e.g. `.DS_Store`
+    const files = fs.readdirSync(pathToDirectory).filter(file => !file.startsWith('.'));
+    if (files.length !== 1) {
+      console.log(`Couldn’t determine attachment; expected '${pathToDirectory}' ` +
+                  `to contain one file, but there were: ${files.join(', ')}`);
+      return null;
+    } else {
+      return files[0];
+    }
+  } catch (e) {
+    console.log(`Couldn’t read attachments in '${pathToDirectory}'`);
+    return null;
   }
-  return files[0];
 }
 
 function removeLinebreaks (value: string): string {
