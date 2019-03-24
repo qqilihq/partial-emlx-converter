@@ -8,6 +8,7 @@ import * as parseRfc2047 from 'rfc2047';
 import * as parseContentDisposition from 'content-disposition';
 import * as parseContentType from 'content-type';
 import * as libqp from 'libqp';
+import * as ProgressBar from 'progress';
 
 interface IContent {
   headers: object;
@@ -30,10 +31,11 @@ const removeNewlineMarker = eol + '__remove_newline__' + eol;
 export function processEmlxs (inputDir: string, outputDir: string, ignoreMissingAttachments?: boolean) {
   glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
     if (err) throw err;
-    for (const f of files) {
-      console.log(`Processing ${f}`);
-      const emlContent = await processEmlx(path.join(inputDir, f), ignoreMissingAttachments);
-      const resultPath = path.join(outputDir, `${stripExtension(path.basename(f))}.eml`);
+    const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
+    for (const file of files) {
+      bar.tick({ file });
+      const emlContent = await processEmlx(path.join(inputDir, file), ignoreMissingAttachments);
+      const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       fs.writeFileSync(resultPath, emlContent);
     }
   });
