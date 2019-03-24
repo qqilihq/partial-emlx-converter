@@ -128,6 +128,26 @@ describe('converter', () => {
 
   });
 
+  describe('.partial.emlx with missing line break after boundary string -- #5', () => {
+
+    // actually, this fix is about correcting an invalid end boundary string;
+    // according to the specification, it should be: close-delimiter := delimiter "--",
+    // however, the test data used only a single hyphen, which caused parsing errors
+    // https://github.com/qqilihq/partial-emlx-converter/issues/5
+
+    let result: string;
+
+    before(async () => {
+      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), true);
+      writeForDebugging(result, '114895.eml');
+    });
+
+    it('fixes end boundary string with one hyphen to two hyphens', () => {
+      expect(result).to.match(/.*--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--\s*$/);
+    });
+
+  });
+
 });
 
 function extractHeader (input: string): string {

@@ -254,6 +254,14 @@ function preprocessBoundaries (lines: string[]): string[] {
       // console.log(`adding preceeding newline @ ${idx}: ${lines[idx]}`);
       lines[idx - 1] = lines[idx - 1] + removeNewlineMarker;
       lines[idx] = eol + lines[idx];
+    } else if (line.endsWith('-')) {
+      // fix for #5 -- an end boundary string which is only terminated
+      // with a single '-' is corrected to double '--' here
+      boundaries.filter(boundary => !boundary.endsWith('--')).forEach(b => {
+        if (line === `${b}-`) {
+          lines[idx] = `${lines[idx]}-`;
+        }
+      });
     }
   });
   return lines;
