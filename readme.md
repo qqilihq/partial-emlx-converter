@@ -1,6 +1,9 @@
 📧 .emlx and .partial.emlx to .eml converter
 ============================================
 
+[![Run Status](https://api.shippable.com/projects/5a6648bfef71c307001ec861/badge?branch=master)]()
+[![Coverage Badge](https://api.shippable.com/projects/5a6648bfef71c307001ec861/coverageBadge?branch=master)]()
+
 This script converts `.emlx` and `.partial.emlx` files written by Apple’s [Mail.app](https://en.wikipedia.org/wiki/Mail_(Apple)) into fully self-contained, “stand alone” `.eml` files which can be imported and opened by a great variety of email applications (Mail.app, Thunderbird, …).
 
 Apple uses these formats for internal storage (see `~/Library/Mail/V4`), and under normal circumstances you will not come in contact with those files. Unfortunately, one of my IMAP mailboxes went out of service and I was not able to copy all the messages to a different account with Mail.app, even though all mails and attachments were there (see [here](https://apple.stackexchange.com/questions/312942/recovering-emails-from-defunct-imap-account) for the story).
