@@ -16,7 +16,7 @@ That’s why I created this script.
 This is the easiest way if you’re not a developer. Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS) and run the following command to install the script globally with [npm](https://www.npmjs.com):
 
 ```
-npm install --global partial-emlx-converter
+$ npm install --global partial-emlx-converter
 ```
 
 Then, run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
