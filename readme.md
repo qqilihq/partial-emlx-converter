@@ -9,7 +9,7 @@ That’s why I created this script.
 
 ## Build
 
-Use a current version of [Node.js](https://nodejs.org/en/) (built with v6.11.0). Install the dependencies, run the tests, and compile the TypeScript code with [yarn](https://yarnpkg.com/lang/en/) or npm:
+Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS). Install the dependencies, run the tests, and compile the TypeScript code with [yarn](https://yarnpkg.com/lang/en/) or npm:
 
 ```
 $ yarn
