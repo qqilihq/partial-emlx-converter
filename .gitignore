@@ -7,3 +7,6 @@ npm-debug.log*
 node_modules/
 
 build/
+
+.nyc_output
+coverage
