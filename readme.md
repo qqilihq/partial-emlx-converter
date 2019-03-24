@@ -32,7 +32,7 @@ Optionally, you can specify `--ignoreMissingAttachments` as third argument. This
 
 ## About the file formats
 
-**Disclaimer:** I figured out the following by reverse engineering. I cannot give any guarantee about the correctness. If you feel, that something should be corrected, please let me know. 
+**Disclaimer:** I figured out the following by reverse engineering. I cannot give any guarantee about the correctness. If you feel, that something should be corrected, please let me know.
 
 `.emlx` and `.partial.emlx` are similar to `.eml`, with the following peculiarities:
 
@@ -41,7 +41,7 @@ Optionally, you can specify `--ignoreMissingAttachments` as third argument. This
 These files start with a line which contains the length of the actual `.eml` payload:
 
 ```
-2945      
+2945
 Return-Path: <john@example.com>
 X-Original-To: john@example.com
 …
