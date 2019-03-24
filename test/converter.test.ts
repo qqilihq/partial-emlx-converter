@@ -48,7 +48,7 @@ describe('converter', () => {
       // remove all CR-LF sequences, and then check whether
       // there are lonesome LF characters left (fail)
       const tempResultWithoutCrLf = result.replace(/\r\n/g, '');
-      expect(tempResultWithoutCrLf.indexOf('\n')).to.eql(-1);
+      expect(tempResultWithoutCrLf.includes('\n')).to.be(false);
     });
 
     it('boundaries are at expected lines', () => {
