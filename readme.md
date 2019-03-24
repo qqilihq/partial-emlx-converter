@@ -3,6 +3,7 @@
 
 [![Run Status](https://api.shippable.com/projects/5a6648bfef71c307001ec861/badge?branch=master)]()
 [![Coverage Badge](https://api.shippable.com/projects/5a6648bfef71c307001ec861/coverageBadge?branch=master)]()
+[![npm version](https://badge.fury.io/js/partial-emlx-converter.svg)](https://badge.fury.io/js/partial-emlx-converter)
 
 This script converts `.emlx` and `.partial.emlx` files written by Apple’s [Mail.app](https://en.wikipedia.org/wiki/Mail_(Apple)) into fully self-contained, “stand alone” `.eml` files which can be imported and opened by a great variety of email applications (Mail.app, Thunderbird, …).
 
