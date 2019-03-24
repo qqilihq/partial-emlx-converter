@@ -11,6 +11,22 @@ Apple uses these formats for internal storage (see `~/Library/Mail/V4`), and und
 
 That’s why I created this script.
 
+## Installation with package manager
+
+This is the easiest way if you’re not a developer. Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS) and run the following command to install the script globally with [npm](https://www.npmjs.com):
+
+```
+npm install --global partial-emlx-converter
+```
+
+Then, run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
+
+```
+$ partial-emlx-converter /path/to/input /path/to/result
+```
+
+Optionally, you can specify `--ignoreMissingAttachments` as third argument. This way, no errors will be thrown in case an attachment does not exist.
+
 ## Build
 
 Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS). Install the dependencies, run the tests, and compile the TypeScript code with [yarn](https://yarnpkg.com/lang/en/) or npm:
@@ -20,16 +36,6 @@ $ yarn
 $ yarn test
 $ yarn build
 ```
-
-## Run
-
-Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
-
-```
-$ node dist/converter.js /path/to/input /path/to/result
-```
-
-Optionally, you can specify `--ignoreMissingAttachments` as third argument. This way, no errors will be thrown in case an attachment does not exist.
 
 ## Releasing to NPM
 
