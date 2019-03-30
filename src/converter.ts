@@ -45,9 +45,17 @@ export function processEmlxs (inputDir: string, outputDir: string, ignoreMissing
 export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
 
   const rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
+
   const payload = extractPayload(rawEmlx);
 
   const lines = payload.split(/\r?\n/);
+
+  // dirty fix for https://github.com/qqilihq/partial-emlx-converter/issues/1
+  // the eml-format lib treats the 'Content-Type' case sensitively
+  for (let idx = 0; idx < lines.length; idx++) {
+    if (lines[idx] === '') break;
+    lines[idx] = lines[idx].replace(/^Content-Type:\s/mi, 'Content-Type: ');
+  }
 
   const preprocessedEmlx = preprocessBoundaries(lines).join(eol);
 
