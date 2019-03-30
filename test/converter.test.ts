@@ -95,9 +95,7 @@ describe('converter', () => {
     let result: string;
     before(async () => {
       result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'));
-      if (debug) {
-        fs.writeFileSync(path.join(os.homedir(), '114862.eml'), result, 'utf-8');
-      }
+      writeForDebugging(result, '465622.emlx');
     });
 
     it('result has more than 2000 lines', () => {
