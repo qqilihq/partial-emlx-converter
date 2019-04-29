@@ -35,9 +35,13 @@ export function processEmlxs (inputDir: string, outputDir: string, ignoreMissing
     const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
     for (const file of files) {
       bar.tick({ file });
-      const emlContent = await processEmlx(path.join(inputDir, file), ignoreMissingAttachments);
-      const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
-      await fs.promises.writeFile(resultPath, emlContent);
+      try {
+        const emlContent = await processEmlx(path.join(inputDir, file), ignoreMissingAttachments);
+        const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
+        await fs.promises.writeFile(resultPath, emlContent);
+      } catch (e) {
+        bar.interrupt(`Skipped file ${file}: ${e}`);
+      }
     }
   });
 }
