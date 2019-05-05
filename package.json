@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@types/expect.js": "^0.3.29",
+    "@types/glob": "^7.1.1",
     "@types/mocha": "^2.2.46",
     "@types/node": "^10.14.3",
     "@types/progress": "^2.0.3",

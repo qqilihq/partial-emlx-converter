@@ -29,17 +29,24 @@ const encodedLineLength = 76;
 /** Newline was inserted subsequently; needs to be stripped away afterwards. */
 const removeNewlineMarker = eol + '__remove_newline__' + eol;
 
-export function processEmlxs (inputDir: string, outputDir: string, ignoreMissingAttachments?: boolean) {
-  glob('**/*.emlx', { cwd: inputDir }, async (err, files) => {
-    if (err) throw err;
-    const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
-    for (const file of files) {
-      bar.tick({ file });
-      const emlContent = await processEmlx(path.join(inputDir, file), ignoreMissingAttachments);
+export async function processEmlxs (inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
+  const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
+  const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
+  for (const file of files) {
+    bar.tick({ file });
+    try {
+      const emlContent = await processEmlx(path.join(inputDir, file), ignoreErrors);
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       await fs.promises.writeFile(resultPath, emlContent);
+    } catch (e) {
+      if (ignoreErrors) {
+        bar.interrupt(`Skipped file ${file}: ${e}`);
+      } else {
+        console.log(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
+        throw e;
+      }
     }
-  });
+  }
 }
 
 export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
@@ -338,13 +345,13 @@ if (require.main === module) {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.log(`${__filename} input_directory output_directory`);
+    console.log(`${__filename} input_directory output_directory [--ignoreErrors]`);
     process.exit(1);
   }
-  let ignoreMissingAttachments = false;
+  let ignoreErrors = false;
   if (args.length > 2) {
-    ignoreMissingAttachments = args[2] === '--ignoreMissingAttachments';
+    ignoreErrors = args[2] === '--ignoreErrors';
   }
 
-  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreMissingAttachments);
+  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch(err => console.error(err));
 }

@@ -175,6 +175,20 @@ describe('converter', () => {
 
   });
 
+  describe('different boundary strings -- #10', () => {
+
+    // https://github.com/qqilihq/partial-emlx-converter/issues/10
+    it('fails per default', async () => {
+      try {
+        await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), false);
+        expect().fail();
+      } catch (e) {
+        expect(e.message).to.contain('Different boundary strings');
+      }
+    });
+
+  });
+
 });
 
 function extractHeader (input: string): string {
