@@ -25,7 +25,7 @@ Then, run the script with at least two arguments: (1) Path to the directory whic
 $ partial-emlx-converter /path/to/input /path/to/result
 ```
 
-Optionally, you can specify `--ignoreMissingAttachments` as third argument. This way, no errors will be thrown in case an attachment does not exist.
+Optionally, you can specify `--ignoreErrors` as third argument. This way, the conversion will not be aborted in case there’s an error for a file (see the log output for details in this case).
 
 ## Build
 
