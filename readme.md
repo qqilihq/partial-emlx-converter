@@ -122,4 +122,4 @@ Pull requests are very welcome. Feel free to discuss bugs or new features by ope
 
 - - -
 
-Copyright (c) 2018, 2019 Philipp Katz
+Copyright (c) 2018 – 2020 Philipp Katz
