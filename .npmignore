@@ -7,6 +7,7 @@ test/
 .editorconfig
 .eslintrc.js
 .gitignore
+.mocharc.js
 .nycrc
 .prettierrc.js
 shippable.yml
