@@ -32,7 +32,7 @@ const encodedLineLength = 76;
 /** Newline was inserted subsequently; needs to be stripped away afterwards. */
 const removeNewlineMarker = eol + '__remove_newline__' + eol;
 
-export async function processEmlxs (inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
+export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
   const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
   const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
   for (const file of files) {
@@ -45,15 +45,16 @@ export async function processEmlxs (inputDir: string, outputDir: string, ignoreE
       if (ignoreErrors) {
         bar.interrupt(`Skipped file ${file}: ${e}`);
       } else {
-        console.log(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
+        console.log(
+          `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+        );
         throw e;
       }
     }
   }
 }
 
-export async function processEmlx (emlxFile: string, ignoreMissingAttachments: boolean = false): Promise<string> {
-
+export async function processEmlx(emlxFile: string, ignoreMissingAttachments = false): Promise<string> {
   const rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
 
   const payload = extractPayload(rawEmlx);
@@ -64,7 +65,7 @@ export async function processEmlx (emlxFile: string, ignoreMissingAttachments: b
   // the eml-format lib treats the 'Content-Type' case sensitively
   for (let idx = 0; idx < lines.length; idx++) {
     if (lines[idx] === '') break;
-    lines[idx] = lines[idx].replace(/^Content-Type:\s/mi, 'Content-Type: ');
+    lines[idx] = lines[idx].replace(/^Content-Type:\s/im, 'Content-Type: ');
   }
 
   const preprocessedEmlx = preprocessBoundaries(lines).join(eol);
@@ -76,13 +77,11 @@ export async function processEmlx (emlxFile: string, ignoreMissingAttachments: b
   const data = await parseEmlFormat(preprocessedEmlx);
 
   if (Array.isArray(data.body)) {
-
     await transform(data.body, emlxFile, ignoreMissingAttachments);
 
     // write the eml data (do not use read/build from 'eml-format',
     // because they flatten the structure)
     writeBody(data.body, appender);
-
   } else {
     appender.push(data.body);
   }
@@ -91,15 +90,13 @@ export async function processEmlx (emlxFile: string, ignoreMissingAttachments: b
   const payloadResult = appender.join(eol).replace(new RegExp(removeNewlineMarker + eol, 'g'), '');
 
   return headers + eol + eol + eol + payloadResult + eol;
-
 }
 
-function parseEmlFormat (input: string): Promise<IContent> {
+function parseEmlFormat(input: string): Promise<IContent> {
   return util.promisify(emlformat.parse)(input);
 }
 
-function writeBody (parts: IPart[], appender: string[]) {
-
+function writeBody(parts: IPart[], appender: string[]): void {
   if (appender.length > 0) {
     appender.push('');
   }
@@ -107,7 +104,6 @@ function writeBody (parts: IPart[], appender: string[]) {
   let boundary: string | undefined;
 
   parts.forEach(part => {
-
     // process boundary character;
     // perform sanity check -- all parts
     // in this series should have the
@@ -128,10 +124,12 @@ function writeBody (parts: IPart[], appender: string[]) {
     appender.push('');
 
     // process the body
-    if (Array.isArray(part.part.body)) { // nested parts
+    if (Array.isArray(part.part.body)) {
+      // nested parts
       writeBody(part.part.body, appender);
       appender.push('');
-    } else { // string or buffer data
+    } else {
+      // string or buffer data
       appender.push(part.part.body);
     }
   });
@@ -139,9 +137,9 @@ function writeBody (parts: IPart[], appender: string[]) {
   appender.push('--' + boundary + '--');
 }
 
-async function transform (parts: IPart[], emlxFile: string, ignoreMissingAttachments: boolean) {
+async function transform(parts: IPart[], emlxFile: string, ignoreMissingAttachments: boolean): Promise<void> {
   for (let index = 0; index < parts.length; index++) {
-    await transformRec(parts[index], emlxFile, [ index + 1 ], ignoreMissingAttachments);
+    await transformRec(parts[index], emlxFile, [index + 1], ignoreMissingAttachments);
   }
 }
 
@@ -149,14 +147,19 @@ async function transform (parts: IPart[], emlxFile: string, ignoreMissingAttachm
 // in case there's 'X-Apple-Content-Length'
 // attribute, add the actual base64 content
 // to the part and remove the property
-async function transformRec (part: IPart, emlxFile: string, indexPath: number[], ignoreMissingAttachments: boolean) {
+async function transformRec(
+  part: IPart,
+  emlxFile: string,
+  indexPath: number[],
+  ignoreMissingAttachments: boolean
+): Promise<void> {
   if (Array.isArray(part.part.body)) {
     for (let index = 0; index < part.part.body.length; index++) {
       await transformRec(part.part.body[index], emlxFile, indexPath.concat(index + 1), ignoreMissingAttachments);
     }
-  } else
+  }
   // 'X-Apple-Content-Length' denotes an external attachment
-  if (part.part.headers['X-Apple-Content-Length']) {
+  else if (part.part.headers['X-Apple-Content-Length']) {
     delete part.part.headers['X-Apple-Content-Length'];
     const attachmentDirectoryPath = path.join(
       path.dirname(emlxFile),
@@ -194,13 +197,12 @@ async function transformRec (part: IPart, emlxFile: string, indexPath: number[],
     }
     const encoding = part.part.headers['Content-Transfer-Encoding'];
     part.part.body = encode(encoding, fileBuffer)
-                      // make sure, that we use CR+LF everywhere
-                      .replace(/\r?\n/g, eol);
+      // make sure, that we use CR+LF everywhere
+      .replace(/\r?\n/g, eol);
   }
 }
 
-function getFilenameFromEmail (headers: Headers) {
-
+function getFilenameFromEmail(headers: Headers): string | null {
   // this gives a good overview of the plethora of encoding types:
   // http://test.greenbytes.de/tech/tc2231/
 
@@ -248,13 +250,15 @@ function getFilenameFromEmail (headers: Headers) {
  * @param pathToDirectory Path to the attachment directory (e.g. `.../1.2`)
  * @returns The filname, or `null` in case it could not be determined.
  */
-async function getFilenameFromFileSystem (pathToDirectory: string) {
+async function getFilenameFromFileSystem(pathToDirectory: string): Promise<string | null> {
   try {
     // ignore .dot files, e.g. `.DS_Store`
     const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.'));
     if (files.length !== 1) {
-      console.log(`Couldn’t determine attachment; expected '${pathToDirectory}' ` +
-                  `to contain one file, but there were: ${files.join(', ')}`);
+      console.log(
+        `Couldn’t determine attachment; expected '${pathToDirectory}' ` +
+          `to contain one file, but there were: ${files.join(', ')}`
+      );
       return null;
     } else {
       return files[0];
@@ -265,15 +269,15 @@ async function getFilenameFromFileSystem (pathToDirectory: string) {
   }
 }
 
-function removeLinebreaks (value: string): string {
+function removeLinebreaks(value: string): string {
   return value.replace(/\r?\n/g, ' ');
 }
 
-function wrap (value: string): string {
+function wrap(value: string): string {
   return value.replace(new RegExp(`(.{${encodedLineLength}})`, 'g'), `$1${eol}`);
 }
 
-function stripExtension (fileName: string) {
+function stripExtension(fileName: string): string {
   return fileName.replace(/\..*/, '');
 }
 
@@ -281,7 +285,7 @@ function stripExtension (fileName: string) {
 // by a blank line, Mail.app does NOT always set blank
 // lines though as I found during some experiments --
 // not sure, who's right here
-function preprocessBoundaries (lines: string[]): string[] {
+function preprocessBoundaries(lines: string[]): string[] {
   const boundaries: string[] = [];
   lines.forEach((line, idx) => {
     const boundary = emlformat.getBoundary(line);
@@ -299,11 +303,13 @@ function preprocessBoundaries (lines: string[]): string[] {
     } else if (line.endsWith('-')) {
       // fix for #5 -- an end boundary string which is only terminated
       // with a single '-' is corrected to double '--' here
-      boundaries.filter(boundary => !boundary.endsWith('--')).forEach(b => {
-        if (line === `${b}-`) {
-          lines[idx] = `${lines[idx]}-`;
-        }
-      });
+      boundaries
+        .filter(boundary => !boundary.endsWith('--'))
+        .forEach(b => {
+          if (line === `${b}-`) {
+            lines[idx] = `${lines[idx]}-`;
+          }
+        });
     }
   });
   return lines;
@@ -312,19 +318,16 @@ function preprocessBoundaries (lines: string[]): string[] {
 // emlx file contain the length of the 'payload' in the first line;
 // this allows to strip away the plist epilogue at the end of the
 // files easily
-function extractPayload (content: string): string {
-  const payloadLengthMatch = content.match(/^(\d+)\s+/);
+function extractPayload(content: string): string {
+  const payloadLengthMatch = /^(\d+)\s+/.exec(content);
   if (!payloadLengthMatch) {
     throw new Error('Invalid structure; content did not start with payload length as expected');
   }
   const payloadLength = parseInt(payloadLengthMatch[1], 10);
-  return content.substring(
-    payloadLengthMatch[0].length,
-    payloadLengthMatch[0].length + payloadLength
-  );
+  return content.substring(payloadLengthMatch[0].length, payloadLengthMatch[0].length + payloadLength);
 }
 
-function encode (encoding: string, data: Buffer): string {
+function encode(encoding: string, data: Buffer): string {
   // https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
   // 7bit is the default if not explicitly specified
   // https://stackoverflow.com/a/28531705/388827

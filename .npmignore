@@ -5,10 +5,11 @@ node_modules/
 test/
 
 .editorconfig
+.eslintrc.js
 .gitignore
 .nycrc
+.prettierrc.js
 shippable.yml
 tsconfig.*
-tslint.json
 yarn-error.log
 yarn.lock
