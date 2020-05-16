@@ -11,8 +11,10 @@ import * as libqp from 'libqp';
 import * as ProgressBar from 'progress';
 import * as util from 'util';
 
+type Headers = { [key: string]: string };
+
 interface IContent {
-  headers: object;
+  headers: Headers;
   body: IPart[] | string;
 }
 
@@ -49,7 +51,7 @@ export async function processEmlxs (inputDir: string, outputDir: string, ignoreE
   }
 }
 
-export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: boolean): Promise<string> {
+export async function processEmlx (emlxFile: string, ignoreMissingAttachments: boolean = false): Promise<string> {
 
   const rawEmlx = await fs.promises.readFile(emlxFile, 'utf8');
 
@@ -66,7 +68,7 @@ export async function processEmlx (emlxFile: string, ignoreMissingAttachments?: 
 
   const preprocessedEmlx = preprocessBoundaries(lines).join(eol);
 
-  const appender = [];
+  const appender: string[] = [];
 
   const headers = lines.slice(0, lines.indexOf('')).join(eol);
 
@@ -101,7 +103,7 @@ function writeBody (parts: IPart[], appender: string[]) {
     appender.push('');
   }
 
-  let boundary;
+  let boundary: string | undefined;
 
   parts.forEach(part => {
 
@@ -196,7 +198,7 @@ async function transformRec (part: IPart, emlxFile: string, indexPath: number[],
   }
 }
 
-function getFilenameFromEmail (headers: object) {
+function getFilenameFromEmail (headers: Headers) {
 
   // this gives a good overview of the plethora of encoding types:
   // http://test.greenbytes.de/tech/tc2231/
@@ -270,7 +272,7 @@ function wrap (value: string): string {
   return value.replace(new RegExp(`(.{${encodedLineLength}})`, 'g'), `$1${eol}`);
 }
 
-function stripExtension (fileName) {
+function stripExtension (fileName: string) {
   return fileName.replace(/\..*/, '');
 }
 
@@ -279,7 +281,7 @@ function stripExtension (fileName) {
 // lines though as I found during some experiments --
 // not sure, who's right here
 function preprocessBoundaries (lines: string[]): string[] {
-  const boundaries = [];
+  const boundaries: string[] = [];
   lines.forEach((line, idx) => {
     const boundary = emlformat.getBoundary(line);
     if (boundary) {
