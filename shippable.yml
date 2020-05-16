@@ -9,9 +9,9 @@ node_js:
 
 # use this to control what branches get built.
 # http://docs.shippable.com/ci/advancedOptions/branches/
-branches:
-  only:
-    - master
+# branches:
+#   only:
+#     - master
 
 # using pre-defined build variables
 # full list http://docs.shippable.com/ci/advancedOptions/environmentVariables/
@@ -19,7 +19,7 @@ env:
   global:
     - TEST_RESULTS_DIR=$SHIPPABLE_REPO_DIR/shippable/testresults
     - CODE_COVERAGE_DIR=$SHIPPABLE_REPO_DIR/shippable/codecoverage
-    - MOD_LOC=$SHIPPABLE_REPO_DIR/node_modules/.bin/
+    - MOD_LOC=$SHIPPABLE_REPO_DIR/node_modules/.bin
 
 build:
 
@@ -29,12 +29,11 @@ build:
 
     # npm mirrors can sometimes be flacky, better to use shippable_retry
     # http://docs.shippable.com/ci/advancedOptions/retry/
-    - shippable_retry yarn install
+    - shippable_retry yarn
 
     - yarn lint
 
     # run tests and keep test and coverage results
-    - mkdir -p $TEST_RESULTS_DIR && mkdir -p $CODE_COVERAGE_DIR
-    - $MOD_LOC/nyc --reporter=cobertura --report-dir=$CODE_COVERAGE_DIR mocha -R mocha-junit-reporter --reporter-options mochaFile=$TEST_RESULTS_DIR/testresults.xml
+    - $MOD_LOC/nyc --reporter=cobertura --report-dir=$CODE_COVERAGE_DIR $MOD_LOC/mocha -R mocha-junit-reporter --reporter-options mochaFile=$TEST_RESULTS_DIR/testresults.xml
 
     - yarn build
