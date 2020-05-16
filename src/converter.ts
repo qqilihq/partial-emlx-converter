@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
+// @ts-ignore
 import * as emlformat from 'eml-format';
 import * as parseRfc2047 from 'rfc2047';
 import * as parseContentDisposition from 'content-disposition';
@@ -171,7 +172,7 @@ async function transformRec (part: IPart, emlxFile: string, indexPath: number[],
     const fileNames = [
       getFilenameFromEmail(part.part.headers),
       await getFilenameFromFileSystem(attachmentDirectoryPath)
-    ].filter(f => !!f);
+    ].filter((f): f is string => !!f);
     let fileBuffer;
     for (const fileName of fileNames) {
       const filePath = path.join(attachmentDirectoryPath, fileName);

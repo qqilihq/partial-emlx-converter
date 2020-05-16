@@ -90,6 +90,16 @@
     lodash "^4.17.11"
     to-fast-properties "^2.0.0"
 
+"@types/content-disposition@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@types/content-disposition/-/content-disposition-0.5.3.tgz#0aa116701955c2faa0717fc69cd1596095e49d96"
+  integrity sha512-P1bffQfhD3O4LW0ioENXUhZ9OIa0Zn+P7M+pWgkCKaT53wVLSq0mrKksCID/FGHpFhRSxRGhgrQmfhRuzwtKdg==
+
+"@types/content-type@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@types/content-type/-/content-type-1.1.3.tgz#3688bd77fc12f935548eef102a4e34c512b03a07"
+  integrity sha512-pv8VcFrZ3fN93L4rTNIbbUzdkzjEyVMp5mPVjsFfOYTDOZMZiZ8P1dhu+kEv3faYyKzZgLlSvnyQNFg+p/v5ug==
+
 "@types/events@*":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz#2862f3f58a9a7f7c3e78d79f130dd4d71c25c2a7"
@@ -106,6 +116,13 @@
   dependencies:
     "@types/events" "*"
     "@types/minimatch" "*"
+    "@types/node" "*"
+
+"@types/libqp@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/libqp/-/libqp-1.1.0.tgz#1c26a4f8c111330bd0a63bbf67e3deb1ddf2f173"
+  integrity sha512-TfuW9rDtHBdCa+6ny5l1gWPkj3nb1V2YYnH7pftj2WQRPbVd/XERNao2OZOnfngxm5gQcS7AsNY6EM+u8vZKIA==
+  dependencies:
     "@types/node" "*"
 
 "@types/minimatch@*":
@@ -133,6 +150,11 @@
   integrity sha512-bPOsfCZ4tsTlKiBjBhKnM8jpY5nmIll166IPD58D92hR7G7kZDfx5iB9wGF4NfZrdKolebjeAr3GouYkSGoJ/A==
   dependencies:
     "@types/node" "*"
+
+"@types/rfc2047@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/rfc2047/-/rfc2047-2.0.1.tgz#42eb43c161a52fd404a935f032360880ec84d400"
+  integrity sha512-slgtykv+XXME7EperkdqfdBBUGcs28ru+a21BK0zOQY4IoxE7tEqvIcvAFAz5DJVxyOmoAUXo30Oxpm3KS+TBQ==
 
 ansi-regex@^2.0.0:
   version "2.1.1"
