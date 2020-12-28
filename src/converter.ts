@@ -154,7 +154,8 @@ export class SkipEmlxTransform extends Transform {
   private bytesToRead: number | undefined = undefined;
   private bytesRead = 0;
   _transform(chunk: Buffer, _encoding: string, callback: TransformCallback): void {
-    let slicedChunk: Buffer;
+    let offset: number;
+    let length: number;
     if (!this.bytesToRead) {
       const payloadLengthMatch = /^(\d+)\s+/.exec(chunk.toString('utf8'));
       if (!payloadLengthMatch) {
@@ -164,12 +165,25 @@ export class SkipEmlxTransform extends Transform {
         return callback(new Error('Invalid structure; content did not start with payload length'));
       }
       this.bytesToRead = parseInt(payloadLengthMatch[1], 10);
-      const offset = payloadLengthMatch[0].length;
-      slicedChunk = chunk.slice(offset, Math.min(this.bytesToRead + offset, chunk.length));
+      offset = payloadLengthMatch[0].length;
+      length = Math.min(this.bytesToRead + offset, chunk.length);
     } else {
-      slicedChunk = chunk.slice(0, Math.min(this.bytesToRead - this.bytesRead, chunk.length));
+      offset = 0;
+      length = Math.min(this.bytesToRead - this.bytesRead, chunk.length);
     }
+    let slicedChunk = chunk.slice(offset, length);
     this.bytesRead += slicedChunk.length;
+    if (this.bytesRead === this.bytesToRead) {
+      // fix for #5 -- an end boundary string which is only terminated
+      // with a single '-' is corrected to double '--' here
+      const temp = slicedChunk.toString('utf8');
+      if (temp.endsWith('-') && !temp.endsWith('--')) {
+        const nextChars = chunk.slice(offset + length, offset + length + 5).toString('utf8');
+        if (nextChars === '<?xml') {
+          slicedChunk = Buffer.concat([slicedChunk, Buffer.from('-')]);
+        }
+      }
+    }
     callback(undefined, slicedChunk);
   }
 }
