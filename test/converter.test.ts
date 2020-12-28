@@ -232,6 +232,41 @@ describe('converter', () => {
       expect(e.message).to.contain('Invalid structure; content did not start with payload length');
     }
   });
+
+  describe('message with Latin 1 encoding -- #17', () => {
+    // https://github.com/qqilihq/partial-emlx-converter/issues/17
+    let result: string;
+    let expectedResult: string;
+
+    before(async function () {
+      const testFile = path.join(__dirname, '__testdata/encrypted/258310/Messages/258310.partial.emlx');
+      if (!fs.existsSync(testFile)) {
+        // https://mochajs.org/#inclusive-tests
+        this.skip();
+      } else {
+        const stream = new MemoryStream();
+        await converter.processEmlx(testFile, stream);
+        const buffer = await streamToBuffer(stream);
+        // nb: deliberately use 'binary' and not 'utf8' here
+        // https://stackoverflow.com/a/40775633/388827
+        result = buffer.toString('binary');
+        writeForDebugging(buffer, '258310.eml');
+        expectedResult = fs.readFileSync(
+          path.join(__dirname, '__testdata/encrypted/258310/expected_results/258310.eml'),
+          'binary'
+        );
+      }
+    });
+
+    it('properly preserves accented characters', () => {
+      expect(result).to.contain('-------- Message transféré --------');
+      expect(result).to.contain('Délégation');
+    });
+
+    it('exactly equals the expected result', () => {
+      expect(result).to.eql(expectedResult);
+    });
+  });
 });
 
 function extractHeader(input: string): string {
