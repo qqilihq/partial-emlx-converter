@@ -18,9 +18,10 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'), stream);
-      result = await streamToString(stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114892.eml'), 'utf-8');
-      writeForDebugging(result, '114892.eml');
+      writeForDebugging(buffer, '114892.eml');
     });
 
     it('encodes quoted-printable in text.txt attachment', () => {
@@ -72,9 +73,10 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'), stream);
-      result = await streamToString(stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114862.eml'), 'utf-8');
-      writeForDebugging(result, '114862.eml');
+      writeForDebugging(buffer, '114862.eml');
     });
 
     it('result has 61 lines', () => {
@@ -92,8 +94,9 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'), stream);
-      result = await streamToString(stream);
-      writeForDebugging(result, '465622.emlx');
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '465622.emlx');
     });
 
     it('result has more than 2000 lines', () => {
@@ -124,8 +127,8 @@ describe('converter', () => {
           stream,
           true
         );
-        const result = await streamToString(stream);
-        writeForDebugging(result, '114863.eml');
+        const buffer = await streamToBuffer(stream);
+        writeForDebugging(buffer, '114863.eml');
       } catch (e) {
         expect().fail();
       }
@@ -138,8 +141,9 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'), stream);
-      result = await streamToString(stream);
-      writeForDebugging(result, '114894.eml');
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '114894.eml');
     });
 
     it('encodes base64 in image001.png attachment', () => {
@@ -158,8 +162,9 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), stream, true);
-      result = await streamToString(stream);
-      writeForDebugging(result, '114895.eml');
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '114895.eml');
     });
 
     it('fixes end boundary string with one hyphen to two hyphens', () => {
@@ -173,8 +178,9 @@ describe('converter', () => {
     before(async () => {
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
-      result = await streamToString(stream);
-      writeForDebugging(result, '229417.eml');
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '229417.eml');
     });
 
     it('contains encoded attachment', () => {
@@ -190,8 +196,9 @@ describe('converter', () => {
       // this is handled gracefully
       const stream = new MemoryStream();
       await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), stream, false);
-      const result = await streamToString(stream);
-      writeForDebugging(result, '11507.eml');
+      const buffer = await streamToBuffer(stream);
+      const result = buffer.toString('utf8');
+      writeForDebugging(buffer, '11507.eml');
       expect(result).to.match(/^X-Antivirus: avg.*/);
       expect(result).to.match(/------=_NextPart_7ae48436ccb4c946256817a6c56cb01c--\n\n$/);
       expect(result.length).to.eql(3685);
@@ -203,14 +210,15 @@ describe('converter', () => {
     it('small file', async () => {
       const fileStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-small.txt'));
       const resultStream = fileStream.pipe(new converter.SkipEmlxTransform());
-      const result = await streamToString(resultStream);
-      expect(result).to.eql('la\nle\nli');
+      const buffer = await streamToBuffer(resultStream);
+      expect(buffer.toString('utf8')).to.eql('la\nle\nli');
     });
 
     it('large file', async () => {
       const readStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-large.txt'));
       const resultStream = readStream.pipe(new converter.SkipEmlxTransform());
-      const result = await streamToString(resultStream);
+      const buffer = await streamToBuffer(resultStream);
+      const result = buffer.toString('utf8');
       expect(result).to.match(/^ab.*/);
       expect(result).to.match(/.*bc$/);
       expect(result.length).to.eql(537723);
@@ -230,17 +238,17 @@ function extractHeader(input: string): string {
   return input.substring(0, input.indexOf('\r?\n\r?\n'));
 }
 
-function writeForDebugging(result: string, filename: string): void {
+function writeForDebugging(result: Buffer, filename: string): void {
   if (debug) {
-    fs.writeFileSync(path.join(os.homedir(), filename), result, 'utf-8');
+    fs.writeFileSync(path.join(os.homedir(), filename), result);
   }
 }
 
-async function streamToString(readable: Readable, encoding = 'utf8'): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
+async function streamToBuffer(readable: Readable): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
     const buffers: Buffer[] = [];
     readable.on('error', error => reject(error));
     readable.on('data', (b: Buffer) => buffers.push(b));
-    readable.on('end', () => resolve(Buffer.concat(buffers).toString(encoding)));
+    readable.on('end', () => resolve(Buffer.concat(buffers)));
   });
 }
