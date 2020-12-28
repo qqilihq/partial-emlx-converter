@@ -105,11 +105,7 @@ To convert a `.partial.emlx` file into an `.eml` file, the separated attachments
 
 Without the following modules I would probably be still working on this script (or have given up on the way). Thank you for saving me so much time!
 
-* [content-disposition](https://github.com/jshttp/content-disposition)
-* [content-type](https://github.com/jshttp/content-type)
-* [eml-format](https://github.com/papnkukn/eml-format)
-* [libqp](https://github.com/nodemailer/libqp)
-* [rfc2047](https://github.com/One-com/rfc2047)
+* [mailsplit](https://github.com/andris9/mailsplit)
 
 Beside that, here are some resources which I found very helpful during development:
 
