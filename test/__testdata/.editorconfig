@@ -1,0 +1,2 @@
+# prevent any modifications to files in this directory
+root = true
