@@ -20,7 +20,7 @@ export async function processEmlxs(inputDir: string, outputDir: string, ignoreEr
       await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
     } catch (e) {
       if (ignoreErrors) {
-        bar.interrupt(`Skipped file ${file}: ${e}`);
+        bar.interrupt(`Skipped file ${file}: ${String(e)}`);
       } else {
         console.log(
           `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
