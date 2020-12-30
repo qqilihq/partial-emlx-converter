@@ -113,9 +113,7 @@ async function integrateAttachment(emlxFile: string, data: any, ignoreMissingAtt
  * In case we cannot extract the attachment filename from the
  * email, we detrmine it by looking into the file system. We
  * expect, that the corresponding attachment directory
- * (e.g. `1.2`) contains exactly *one* file (ignoring files
- * starting with a `.`, to prevent errors when a `.DS_Store`
- * exists).
+ * (e.g. `1.2`) contains exactly *one* file (ignoring `.DS_Store`).
  *
  * This is necessary, because Mail.app uses a language-specific
  * default name for attachments without explicitly given
@@ -126,12 +124,13 @@ async function integrateAttachment(emlxFile: string, data: any, ignoreMissingAtt
  */
 async function getFilenameFromFileSystem(pathToDirectory: string): Promise<string | null> {
   try {
-    // ignore .dot files, e.g. `.DS_Store`
-    const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.'));
+    // ignore `.DS_Store`
+    const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.DS_Store'));
     if (files.length !== 1) {
+      const filenames = files.length > 0 ? `(${files.join(', ')})` : '';
       console.log(
         `Couldn’t determine attachment; expected '${pathToDirectory}' ` +
-          `to contain one file, but there were: ${files.join(', ')}`
+          `to contain one file, but there were: ${files.length} ${filenames}`
       );
       return null;
     } else {
