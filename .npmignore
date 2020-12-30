@@ -1,3 +1,4 @@
+.github/
 .nyc_output/
 coverage/
 src/
@@ -5,6 +6,7 @@ node_modules/
 test/
 
 .editorconfig
+.eslintignore
 .eslintrc.js
 .gitignore
 .mocharc.js
