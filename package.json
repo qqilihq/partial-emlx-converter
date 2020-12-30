@@ -5,7 +5,7 @@
   "version": "3.0.1",
   "main": "dist/converter.js",
   "types": "dist/converter.d.ts",
-  "bin": "bin/partial-emlx-converter.js",
+  "bin": "bin/partial-emlx-converter",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/qqilihq/partial-emlx-converter/issues"
