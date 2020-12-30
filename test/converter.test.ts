@@ -4,6 +4,8 @@ import * as path from 'path';
 import * as converter from '../src/converter';
 import * as fs from 'fs';
 import * as os from 'os';
+import MemoryStream = require('memorystream');
+import { Readable } from 'stream';
 
 /** enable to write results to home dir. */
 const debug = false;
@@ -14,9 +16,12 @@ describe('converter', () => {
     let expectedResult: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'));
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'), stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114892.eml'), 'utf-8');
-      writeForDebugging(result, '114892.eml');
+      writeForDebugging(buffer, '114892.eml');
     });
 
     it('encodes quoted-printable in text.txt attachment', () => {
@@ -32,9 +37,9 @@ describe('converter', () => {
       expect(result).to.contain('Short text.');
     });
 
-    it('result has 2171 lines', () => {
-      // one line less in generated eml, b/c of different quoted-printable encoding
-      expect(result.split('\n').length).to.eql(2171);
+    it('result has 2169 lines', () => {
+      // three lines less in generated eml, b/c of different quoted-printable encoding
+      expect(result.split('\n').length).to.eql(2169);
     });
 
     it('headers are equal', () => {
@@ -43,28 +48,21 @@ describe('converter', () => {
       expect(resultHeader).to.eql(expectedHeader);
     });
 
-    it('only CR-LF line endings', () => {
-      // remove all CR-LF sequences, and then check whether
-      // there are lonesome LF characters left (fail)
-      const tempResultWithoutCrLf = result.replace(/\r\n/g, '');
-      expect(tempResultWithoutCrLf.includes('\n')).to.be(false);
-    });
-
     it('boundaries are at expected lines', () => {
       const tempLines = result.split(/\r?\n/);
       expect(tempLines[19]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B');
       expect(tempLines[92]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B');
-      expect(tempLines[113]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[158]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[634]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[699]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[112]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[157]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[633]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[698]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
       // from here, offset -1 compared to original because
       // of different quoted-printable encoding
-      expect(tempLines[739]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[816]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[2141]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
-      expect(tempLines[2167]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886--');
-      expect(tempLines[2169]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--');
+      expect(tempLines[737]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[814]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[2139]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886');
+      expect(tempLines[2165]).to.eql('--Apple-Mail=_199BBC0B-37DE-426E-862E-2207565E5886--');
+      expect(tempLines[2167]).to.eql('--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--');
     });
   });
 
@@ -73,9 +71,12 @@ describe('converter', () => {
     let expectedResult: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'));
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'), stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114862.eml'), 'utf-8');
-      writeForDebugging(result, '114862.eml');
+      writeForDebugging(buffer, '114862.eml');
     });
 
     it('result has 61 lines', () => {
@@ -91,8 +92,11 @@ describe('converter', () => {
     // https://github.com/qqilihq/partial-emlx-converter/issues/1
     let result: string;
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'));
-      writeForDebugging(result, '465622.emlx');
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'), stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '465622.emlx');
     });
 
     it('result has more than 2000 lines', () => {
@@ -104,7 +108,11 @@ describe('converter', () => {
     // https://github.com/qqilihq/partial-emlx-converter/issues/3
     it('fails per default', async () => {
       try {
-        await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'), false);
+        await converter.processEmlx(
+          path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
+          new MemoryStream(),
+          false
+        );
         expect().fail();
       } catch (e) {
         expect(e.message).to.contain('Could not get attachment file');
@@ -113,11 +121,19 @@ describe('converter', () => {
 
     it('does not fail when flag is set', async () => {
       try {
-        const result = await converter.processEmlx(
+        const stream = new MemoryStream();
+        const messages = await converter.processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
+          stream,
           true
         );
-        writeForDebugging(result, '114863.eml');
+        expect(messages).to.have.length(4);
+        expect(messages).to.contain('Could not get attachment file (tried short.txt)');
+        expect(messages).to.contain('Could not get attachment file (tried original.doc)');
+        expect(messages).to.contain('Could not get attachment file (tried text.txt)');
+        expect(messages).to.contain('Could not get attachment file (tried image001.png)');
+        const buffer = await streamToBuffer(stream);
+        writeForDebugging(buffer, '114863.eml');
       } catch (e) {
         expect().fail();
       }
@@ -128,8 +144,11 @@ describe('converter', () => {
     let result: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'));
-      writeForDebugging(result, '114894.eml');
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'), stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '114894.eml');
     });
 
     it('encodes base64 in image001.png attachment', () => {
@@ -146,8 +165,11 @@ describe('converter', () => {
     let result: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), true);
-      writeForDebugging(result, '114895.eml');
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), stream, true);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '114895.eml');
     });
 
     it('fixes end boundary string with one hyphen to two hyphens', () => {
@@ -159,8 +181,11 @@ describe('converter', () => {
     let result: string;
 
     before(async () => {
-      result = await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'));
-      writeForDebugging(result, '229417.eml');
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
+      const buffer = await streamToBuffer(stream);
+      result = buffer.toString('utf8');
+      writeForDebugging(buffer, '229417.eml');
     });
 
     it('contains encoded attachment', () => {
@@ -170,23 +195,100 @@ describe('converter', () => {
 
   describe('different boundary strings -- #10', () => {
     // https://github.com/qqilihq/partial-emlx-converter/issues/10
-    it('fails per default', async () => {
-      try {
-        await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), false);
-        expect().fail();
-      } catch (e) {
-        expect(e.message).to.contain('Different boundary strings');
+    it('does not fail', async () => {
+      // used to throw error before,
+      // but since switching to `mailsplit`,
+      // this is handled gracefully
+      const stream = new MemoryStream();
+      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), stream, false);
+      const buffer = await streamToBuffer(stream);
+      const result = buffer.toString('utf8');
+      writeForDebugging(buffer, '11507.eml');
+      expect(result).to.match(/^X-Antivirus: avg.*/);
+      expect(result).to.match(/------=_NextPart_7ae48436ccb4c946256817a6c56cb01c--\n\n$/);
+      expect(result.length).to.eql(3685);
+    });
+  });
+
+  describe('SkipEmlxTransform', () => {
+    // https://stackoverflow.com/questions/19906488/convert-stream-into-buffer
+    it('small file', async () => {
+      const fileStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-small.txt'));
+      const resultStream = fileStream.pipe(new converter.SkipEmlxTransform());
+      const buffer = await streamToBuffer(resultStream);
+      expect(buffer.toString('utf8')).to.eql('la\nle\nli');
+    });
+
+    it('large file', async () => {
+      const readStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-large.txt'));
+      const resultStream = readStream.pipe(new converter.SkipEmlxTransform());
+      const buffer = await streamToBuffer(resultStream);
+      const result = buffer.toString('utf8');
+      expect(result).to.match(/^ab.*/);
+      expect(result).to.match(/.*bc$/);
+      expect(result.length).to.eql(537723);
+    });
+  });
+
+  it('throws error on invalid structure', async () => {
+    try {
+      await converter.processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
+    } catch (e) {
+      expect(e.message).to.contain('Invalid structure; content did not start with payload length');
+    }
+  });
+
+  describe('message with Latin 1 encoding -- #17', () => {
+    // https://github.com/qqilihq/partial-emlx-converter/issues/17
+    let result: string;
+    let expectedResult: string;
+
+    before(async function () {
+      const testFile = path.join(__dirname, '__testdata/encrypted/258310/Messages/258310.partial.emlx');
+      if (!fs.existsSync(testFile)) {
+        // https://mochajs.org/#inclusive-tests
+        this.skip();
+      } else {
+        const stream = new MemoryStream();
+        await converter.processEmlx(testFile, stream);
+        const buffer = await streamToBuffer(stream);
+        // nb: deliberately use 'binary' and not 'utf8' here
+        // https://stackoverflow.com/a/40775633/388827
+        result = buffer.toString('binary');
+        writeForDebugging(buffer, '258310.eml');
+        expectedResult = fs.readFileSync(
+          path.join(__dirname, '__testdata/encrypted/258310/expected_results/258310.eml'),
+          'binary'
+        );
       }
+    });
+
+    it('properly preserves accented characters', () => {
+      expect(result).to.contain('-------- Message transféré --------');
+      expect(result).to.contain('Délégation');
+    });
+
+    it('exactly equals the expected result', () => {
+      expect(result).to.eql(expectedResult);
     });
   });
 });
 
 function extractHeader(input: string): string {
-  return input.substring(0, input.indexOf('\r\n\r\n'));
+  return input.substring(0, input.indexOf('\r?\n\r?\n'));
 }
 
-function writeForDebugging(result: string, filename: string): void {
+function writeForDebugging(result: Buffer, filename: string): void {
   if (debug) {
-    fs.writeFileSync(path.join(os.homedir(), filename), result, 'utf-8');
+    fs.writeFileSync(path.join(os.homedir(), filename), result);
   }
+}
+
+async function streamToBuffer(readable: Readable): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
+    const buffers: Buffer[] = [];
+    readable.on('error', error => reject(error));
+    readable.on('data', (b: Buffer) => buffers.push(b));
+    readable.on('end', () => resolve(Buffer.concat(buffers)));
+  });
 }

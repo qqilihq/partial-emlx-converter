@@ -1,0 +1,7 @@
+# only allow adding .gpg files here
+# https://stackoverflow.com/a/9049909
+*
+!*/
+!.gitignore
+!*.gpg
+!*.sh

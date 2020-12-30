@@ -25,9 +25,13 @@ module.exports = {
   ],
   rules: {
     'semi': [ 'error', 'always' ],
-    '@typescript-eslint/interface-name-prefix': [ 'error', { prefixWithI: 'always' } ],
     '@typescript-eslint/ban-ts-ignore': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/no-floating-promises': [ 'error', { ignoreVoid: true } ]
+    '@typescript-eslint/no-floating-promises': [ 'error', { ignoreVoid: true } ],
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-unsafe-return': 'off'
   }
 };
