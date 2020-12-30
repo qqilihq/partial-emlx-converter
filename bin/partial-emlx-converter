@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+const converter = require('../dist/converter');
+converter.processCli();

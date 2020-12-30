@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as path from 'path';
@@ -202,12 +200,11 @@ export class SkipEmlxTransform extends Transform {
   }
 }
 
-// CLI only when module is not require'd
-if (require.main === module) {
+export function processCli(): void {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.log(`${__filename} input_directory output_directory [--ignoreErrors]`);
+    console.log(`${path.basename(process.argv[1])} input_directory output_directory [--ignoreErrors]`);
     process.exit(1);
   }
   let ignoreErrors = false;

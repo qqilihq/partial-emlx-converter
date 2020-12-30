@@ -3,3 +3,4 @@
 # The file must be included in at least one of the projects provided
 # https://stackoverflow.com/a/60840108
 .eslintrc.js
+bin/
