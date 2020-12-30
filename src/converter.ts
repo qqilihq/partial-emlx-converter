@@ -190,7 +190,7 @@ export class SkipEmlxTransform extends Transform {
       // with a single '-' is corrected to double '--' here
       const temp = slicedChunk.toString('utf8');
       if (temp.endsWith('-') && !temp.endsWith('--')) {
-        const nextChars = chunk.slice(offset + length, offset + length + 5).toString('utf8');
+        const nextChars = chunk.slice(length, length + 5).toString('utf8');
         if (nextChars === '<?xml') {
           slicedChunk = Buffer.concat([slicedChunk, Buffer.from('-')]);
         }
