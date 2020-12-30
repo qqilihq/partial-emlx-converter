@@ -2,10 +2,12 @@
   "name": "partial-emlx-converter",
   "description": "Convert .emlx and .partial.emlx files created by Apple’s Mail.app to .eml",
   "author": "Philipp Katz <philipp@philippkatz.de>",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "main": "dist/converter.js",
   "types": "dist/converter.d.ts",
-  "bin": "bin/partial-emlx-converter",
+  "bin": {
+    "partial-emlx-converter": "bin/partial-emlx-converter"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/qqilihq/partial-emlx-converter/issues"
