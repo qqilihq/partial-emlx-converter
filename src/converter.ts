@@ -8,6 +8,9 @@ import * as util from 'util';
 // @ts-ignore
 import { Splitter, Joiner, Rewriter } from 'mailsplit';
 import { Transform, TransformCallback, pipeline, Writable } from 'stream';
+import * as Debug from 'debug';
+
+const debug = Debug('converter');
 
 export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
   const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
@@ -128,7 +131,7 @@ async function getFilenameFromFileSystem(pathToDirectory: string): Promise<strin
     const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.DS_Store'));
     if (files.length !== 1) {
       const filenames = files.length > 0 ? `(${files.join(', ')})` : '';
-      console.log(
+      debug(
         `Couldn’t determine attachment; expected '${pathToDirectory}' ` +
           `to contain one file, but there were: ${files.length} ${filenames}`
       );
@@ -137,7 +140,7 @@ async function getFilenameFromFileSystem(pathToDirectory: string): Promise<strin
       return files[0];
     }
   } catch (e) {
-    console.log(`Couldn’t read attachments in '${pathToDirectory}'`);
+    debug(`Couldn’t read attachments in '${pathToDirectory}'`);
     return null;
   }
 }
