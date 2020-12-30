@@ -122,11 +122,16 @@ describe('converter', () => {
     it('does not fail when flag is set', async () => {
       try {
         const stream = new MemoryStream();
-        await converter.processEmlx(
+        const messages = await converter.processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
           stream,
           true
         );
+        expect(messages).to.have.length(4);
+        expect(messages).to.contain('Could not get attachment file (tried short.txt)');
+        expect(messages).to.contain('Could not get attachment file (tried original.doc)');
+        expect(messages).to.contain('Could not get attachment file (tried text.txt)');
+        expect(messages).to.contain('Could not get attachment file (tried image001.png)');
         const buffer = await streamToBuffer(stream);
         writeForDebugging(buffer, '114863.eml');
       } catch (e) {

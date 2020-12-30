@@ -20,16 +20,14 @@ export async function processEmlxs(inputDir: string, outputDir: string, ignoreEr
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
-      await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
+      const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
+      messages.forEach(message => bar.interrupt(`${file}: ${message}`));
     } catch (e) {
-      if (ignoreErrors) {
-        bar.interrupt(`Skipped file ${file}: ${String(e)}`);
-      } else {
-        console.log(
-          `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
-        );
-        throw e;
-      }
+      bar.interrupt(
+        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+      );
+      bar.terminate();
+      throw e;
     }
   }
 }
@@ -37,11 +35,18 @@ export async function processEmlxs(inputDir: string, outputDir: string, ignoreEr
 // 'X-Apple-Content-Length' denotes an external attachment in case of .partial.emlx
 const appleContentLengthHeader = 'X-Apple-Content-Length';
 
-export async function processEmlx(
-  emlxFile: string,
-  resultStream: Writable,
-  ignoreMissingAttachments = false
-): Promise<void> {
+/**
+ * Process a single .emlx or .partial.emlx file.
+ *
+ * @param emlxFile Path to the file.
+ * @param resultStream The stream to which to write the result.
+ * @param ignoreErrors `true` to suppress throwing errors
+ * (e.g. when attachment is missing). In this case, the
+ * result array will contain a list of errors.
+ * @returns List of error messages (when `ignoreErrors` was enabled)
+ */
+export async function processEmlx(emlxFile: string, resultStream: Writable, ignoreErrors = false): Promise<string[]> {
+  const messages: string[] = [];
   // see here for a an example how to implement the Rewriter:
   // https://github.com/andris9/mailsplit/blob/master/examples/rewrite-html.js
 
@@ -54,9 +59,16 @@ export async function processEmlx(
       // no op (callback needs to be here though!)
     });
     data.decoder.on('end', () => {
-      integrateAttachment(emlxFile, data, ignoreMissingAttachments)
+      integrateAttachment(emlxFile, data).catch(err => {
         // propagate error event
-        .catch(err => rewriter.emit('error', err));
+        if (ignoreErrors) {
+          // just store in `messages`
+          messages.push(err.message);
+        } else {
+          // emit (and then throw)
+          rewriter.emit('error', err);
+        }
+      });
     });
   });
   await util.promisify(pipeline)(
@@ -67,10 +79,11 @@ export async function processEmlx(
     new Joiner(),
     resultStream
   );
+  return messages;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function integrateAttachment(emlxFile: string, data: any, ignoreMissingAttachments: boolean): Promise<void> {
+async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
   const attachmentDirectoryPath = path.join(
     path.dirname(emlxFile),
     '..',
@@ -102,13 +115,12 @@ async function integrateAttachment(emlxFile: string, data: any, ignoreMissingAtt
     }
   }
   if (!processedAttachment) {
-    const message = `Could not get attachment file (tried ${fileNames.join(', ')})`;
-    if (ignoreMissingAttachments) {
-      console.log(`[warn] ${message}`);
-      data.encoder.end();
-    } else {
-      throw new Error(message);
+    data.encoder.end();
+    let message = 'Could not get attachment file';
+    if (fileNames.length > 0) {
+      message += ` (tried ${fileNames.join(', ')})`;
     }
+    throw new Error(message);
   }
 }
 
