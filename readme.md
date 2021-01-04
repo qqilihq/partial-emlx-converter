@@ -11,15 +11,29 @@ Apple uses these formats for internal storage (see `~/Library/Mail/Vx`), and und
 
 That’s why I created this script.
 
-## Installation with package manager
+## Installation
 
-This is the easiest way if you’re not a developer. Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS) and run the following command to install the script globally with [npm](https://www.npmjs.com):
+### With Homebrew
+
+This is the easiest way if you’re not a Node.js developer. Install the script and all dependencies with [Homebrew](https://brew.sh):
+
+```shell
+$ brew install qqilihq/partial-emlx-converter/partial-emlx-converter
+```
+
+I would like to make this script available in the Homebrew core repository as well, but for this the project needs more ⭐️ and 🍴 — please help!
+
+### With NPM/Yarn
+
+Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS) and run the following command to install the script globally with [npm](https://www.npmjs.com):
 
 ```shell
 $ npm install --global partial-emlx-converter
 ```
 
-Then, run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
+## Usage
+
+Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
 
 ```shell
 $ partial-emlx-converter /path/to/input /path/to/result
@@ -48,6 +62,8 @@ $ npm publish
 ```
 
 … where `<update_type>` is one of `patch`, `minor`, or `major`. This will update the `package.json`, and create a tagged Git commit with the version number.
+
+After releasing a new version, remember to update the Homebrew formula [here](https://github.com/qqilihq/homebrew-partial-emlx-converter).
 
 ## About the file formats
 
@@ -118,4 +134,4 @@ Pull requests are very welcome. Feel free to discuss bugs or new features by ope
 
 - - -
 
-Copyright (c) 2018 – 2020 Philipp Katz
+Copyright (c) 2018 – 2021 Philipp Katz
