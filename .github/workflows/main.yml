@@ -1,0 +1,29 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          # Version Spec of the version to use.  Examples: 10.x, 10.15.1, >=10.15.0
+          node-version: ">=10"
+
+      - name: Lint, test, and build
+        run: |
+          npm install -g yarn
+          yarn install
+          yarn lint
+          yarn run nyc --reporter=json-summary ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
+          yarn build
+
+      - uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage/coverage-summary.json
+          fail_ci_if_error: true
