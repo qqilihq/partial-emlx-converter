@@ -12,7 +12,6 @@ test/
 .mocharc.js
 .nycrc
 .prettierrc.js
-shippable.yml
 tsconfig.*
 yarn-error.log
 yarn.lock
