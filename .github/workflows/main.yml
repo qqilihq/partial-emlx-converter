@@ -20,10 +20,10 @@ jobs:
           npm install -g yarn
           yarn install
           yarn lint
-          yarn run nyc --reporter=json-summary ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
+          yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
           yarn build
 
       - uses: codecov/codecov-action@v1
         with:
-          file: ./coverage/coverage-summary.json
+          file: ./coverage/coverage-final.json
           fail_ci_if_error: true
