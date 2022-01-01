@@ -29,12 +29,15 @@
     "test": "nyc mocha",
     "lint": "eslint --ext .ts ./src ./test",
     "clean": "rimraf ./.nyc_output ./coverage ./dist",
-    "preversion": "run-s clean lint test build"
+    "preversion": "run-s clean lint test build",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "debug": "^4.3.1",
     "glob": "^7.1.6",
     "mailsplit": "^5.0.1",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
     "progress": "^2.0.3"
   },
   "devDependencies": {

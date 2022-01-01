@@ -1,0 +1,32 @@
+diff --git a/node_modules/progress/lib/node-progress.js b/node_modules/progress/lib/node-progress.js
+index 8eb0740..5597012 100644
+--- a/node_modules/progress/lib/node-progress.js
++++ b/node_modules/progress/lib/node-progress.js
+@@ -173,7 +173,9 @@ ProgressBar.prototype.render = function (tokens, force) {
+   if (this.lastDraw !== str) {
+     this.stream.cursorTo(0);
+     this.stream.write(str);
+-    this.stream.clearLine(1);
++    if (this.stream.clearLine) {
++      this.stream.clearLine(1);
++    }
+     this.lastDraw = str;
+   }
+ };
+@@ -206,10 +208,12 @@ ProgressBar.prototype.update = function (ratio, tokens) {
+  */
+ 
+ ProgressBar.prototype.interrupt = function (message) {
+-  // clear the current line
+-  this.stream.clearLine();
+-  // move the cursor to the start of the line
+-  this.stream.cursorTo(0);
++  if (this.stream.clearLine) {
++    // clear the current line
++    this.stream.clearLine();
++    // move the cursor to the start of the line
++    this.stream.cursorTo(0);
++  }
+   // write the message text
+   this.stream.write(message);
+   // terminate the line after writing the message
