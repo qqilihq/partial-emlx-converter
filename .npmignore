@@ -10,6 +10,7 @@ test/
 .eslintrc.js
 .gitignore
 .mocharc.js
+.ncurc.js
 .nycrc
 .prettierrc.js
 tsconfig.*
