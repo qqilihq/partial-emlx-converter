@@ -115,7 +115,7 @@ describe('converter', () => {
         );
         expect().fail();
       } catch (e) {
-        expect(e.message).to.contain('Could not get attachment file');
+        expect((e as Error).message).to.contain('Could not get attachment file');
       }
     });
 
@@ -234,7 +234,7 @@ describe('converter', () => {
     try {
       await converter.processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
     } catch (e) {
-      expect(e.message).to.contain('Invalid structure; content did not start with payload length');
+      expect((e as Error).message).to.contain('Invalid structure; content did not start with payload length');
     }
   });
 
