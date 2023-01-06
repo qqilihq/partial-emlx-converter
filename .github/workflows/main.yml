@@ -16,12 +16,11 @@ jobs:
           node-version: ">=16"
 
       - name: Lint, test, and build
-      # yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
         run: |
           npm install -g yarn
           yarn install
           yarn lint
-          yarn test
+          yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
           yarn build
 
       - uses: codecov/codecov-action@v3
