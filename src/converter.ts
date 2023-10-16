@@ -1,12 +1,17 @@
-import * as fs from 'fs';
-import * as glob from 'glob';
-import * as path from 'path';
-import * as ProgressBar from 'progress';
-import * as util from 'util';
-// @ts-ignore
-import { Splitter, Joiner, Rewriter } from 'mailsplit';
-import { Transform, TransformCallback, pipeline, Writable } from 'stream';
-import * as Debug from 'debug';
+import fs from 'node:fs';
+// @deno-types="npm:@types/glob@7.2.0"
+import glob from 'npm:glob@7.2.0';
+import path from 'node:path';
+// @deno-types="npm:@types/progress@^2.0.5"
+import ProgressBar from 'npm:progress@2.0.3';
+import util from 'node:util';
+// @ts-ignore - no typings available
+import { Splitter, Joiner, Rewriter } from 'npm:mailsplit@5.4.0';
+import { Transform, TransformCallback, pipeline, Writable } from 'node:stream';
+// @deno-types="npm:@types/debug@4.1.7"
+import Debug from 'npm:debug@4.3.3';
+import process from 'node:process';
+import { Buffer } from 'node:buffer';
 
 const debug = Debug('converter');
 

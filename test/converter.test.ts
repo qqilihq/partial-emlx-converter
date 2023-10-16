@@ -1,11 +1,12 @@
-import expect = require('expect.js');
-import 'mocha';
-import * as path from 'path';
-import * as converter from '../src/converter';
-import * as fs from 'fs';
-import * as os from 'os';
-import MemoryStream = require('memorystream');
-import { Readable } from 'stream';
+import expect from 'npm:expect.js@0.3.1';
+import 'npm:mocha@10.2.0';
+import * as path from 'node:path';
+import * as converter from '../src/converter.ts';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import MemoryStream from 'npm:memorystream@0.3.1'
+import { Readable } from 'node:stream';
+import { Buffer } from 'node:buffer';
 
 /** enable to write results to home dir. */
 const debug = false;
@@ -284,7 +285,7 @@ function writeForDebugging(result: Buffer, filename: string): void {
   }
 }
 
-async function streamToBuffer(readable: Readable): Promise<Buffer> {
+function streamToBuffer(readable: Readable): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     const buffers: Buffer[] = [];
     readable.on('error', error => reject(error));
