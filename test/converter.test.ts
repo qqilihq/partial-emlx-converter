@@ -111,7 +111,7 @@ Deno.test('.partial.emlx with missing attachment file -- #3', { sanitizeOps: fal
       ]);
       const buffer = await streamToBuffer(stream);
       writeForDebugging(buffer, '114863.eml');
-    } catch (e) {
+    } catch (_e) {
       assertEquals(true, false);
     }
   })
