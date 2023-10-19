@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --allow-env --trace-ops",
+    "build": "deno compile --allow-read --allow-env ./src/run.ts"
+  },
+  "test": {
+    "include": ["test/"]
+  }
+}
