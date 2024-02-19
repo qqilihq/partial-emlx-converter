@@ -6,8 +6,8 @@ import path from 'node:path';
 import ProgressBar from 'npm:progress@2.0.3';
 import util from 'node:util';
 // @ts-ignore - no typings available
-import { Splitter, Joiner, Rewriter } from 'npm:mailsplit@5.4.0';
-import { Transform, TransformCallback, pipeline, Writable } from 'node:stream';
+import { Joiner, Rewriter, Splitter } from 'npm:mailsplit@5.4.0';
+import { pipeline, Transform, TransformCallback, Writable } from 'node:stream';
 // @deno-types="npm:@types/debug@4.1.7"
 import Debug from 'npm:debug@4.3.3';
 import process from 'node:process';
@@ -24,10 +24,10 @@ export async function processEmlxs(inputDir: string, outputDir: string, ignoreEr
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
       const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
-      messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+      messages.forEach((message) => bar.interrupt(`${file}: ${message}`));
     } catch (e) {
       bar.interrupt(
-        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`,
       );
       bar.terminate();
       throw e;
@@ -62,7 +62,7 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
       // no op (callback needs to be here though!)
     });
     data.decoder.on('end', () => {
-      integrateAttachment(emlxFile, data).catch(err => {
+      integrateAttachment(emlxFile, data).catch((err) => {
         // propagate error event
         if (ignoreErrors) {
           // just store in `messages`
@@ -80,7 +80,7 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
     new Splitter(),
     rewriter,
     new Joiner(),
-    resultStream
+    resultStream,
   );
   return messages;
 }
@@ -92,14 +92,14 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     '..',
     'Attachments',
     stripExtension(path.basename(emlxFile)),
-    data.node.partNr.join('.') // e.g. array [1, 1, 2]
+    data.node.partNr.join('.'), // e.g. array [1, 1, 2]
   );
   // first try to get the name as explicitly specified in the email text
   // (this seems like the most reliable way), but if that does not work,
   // check the `Attachments` directory structure. See:
   // https://github.com/qqilihq/partial-emlx-converter/issues/3
   const fileNames = [data.node.filename, await getFilenameFromFileSystem(attachmentDirectoryPath)].filter(
-    (f): f is string => !!f
+    (f): f is string => !!f,
   );
   let processedAttachment = false;
   for (const fileName of fileNames) {
@@ -107,7 +107,7 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     try {
       await new Promise<void>((resolve, reject) => {
         const stream = fs.createReadStream(filePath);
-        stream.on('error', error => reject(error));
+        stream.on('error', (error) => reject(error));
         stream.on('close', () => resolve());
         stream.pipe(data.encoder);
       });
@@ -143,12 +143,12 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
 async function getFilenameFromFileSystem(pathToDirectory: string): Promise<string | null> {
   try {
     // ignore `.DS_Store`
-    const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.DS_Store'));
+    const files = (await fs.promises.readdir(pathToDirectory)).filter((file) => !file.startsWith('.DS_Store'));
     if (files.length !== 1) {
       const filenames = files.length > 0 ? `(${files.join(', ')})` : '';
       debug(
         `Couldn’t determine attachment; expected '${pathToDirectory}' ` +
-          `to contain one file, but there were: ${files.length} ${filenames}`
+          `to contain one file, but there were: ${files.length} ${filenames}`,
       );
       return null;
     } else {
@@ -217,5 +217,5 @@ export function processCli(): void {
     ignoreErrors = args[2] === '--ignoreErrors';
   }
 
-  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch(err => console.error(err));
+  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch((err) => console.error(err));
 }

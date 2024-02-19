@@ -3,10 +3,15 @@ import * as path from 'node:path';
 import * as converter from '../src/converter.ts';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
-import MemoryStream from 'npm:memorystream@0.3.1'
+import MemoryStream from 'npm:memorystream@0.3.1';
 import { Readable } from 'node:stream';
 import { Buffer } from 'node:buffer';
-import { assertEquals, assertStringIncludes, assertArrayIncludes, assertMatch } from 'https://deno.land/std@0.204.0/assert/mod.ts';
+import {
+  assertArrayIncludes,
+  assertEquals,
+  assertMatch,
+  assertStringIncludes,
+} from 'https://deno.land/std@0.204.0/assert/mod.ts';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -78,44 +83,48 @@ Deno.test('issue 1', async () => {
   assertEquals(result.split('\n').length > 2000, true, 'result has more than 2000 lines');
 });
 
-Deno.test('.partial.emlx with missing attachment file -- #3', { sanitizeOps: false, sanitizeResources: false }, async (t) => {
-  // https://github.com/qqilihq/partial-emlx-converter/issues/3
+Deno.test(
+  '.partial.emlx with missing attachment file -- #3',
+  { sanitizeOps: false, sanitizeResources: false },
+  async (t) => {
+    // https://github.com/qqilihq/partial-emlx-converter/issues/3
 
-  await t.step('fails per default', async () => {
-    try {
-      await converter.processEmlx(
-        path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
-        new MemoryStream(),
-        false
-      );
-      assertEquals(true, false);
-    } catch (e) {
-      assertStringIncludes((e as Error).message, 'Could not get attachment file');
-    }
-  });
+    await t.step('fails per default', async () => {
+      try {
+        await converter.processEmlx(
+          path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
+          new MemoryStream(),
+          false,
+        );
+        assertEquals(true, false);
+      } catch (e) {
+        assertStringIncludes((e as Error).message, 'Could not get attachment file');
+      }
+    });
 
-  await t.step('does not fail when flag is set', async () => {
-    try {
-      const stream = new MemoryStream();
-      const messages = await converter.processEmlx(
-        path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
-        stream,
-        true
-      );
-      assertEquals(messages.length, 4);
-      assertArrayIncludes(messages, [
-        'Could not get attachment file (tried short.txt)',
-        'Could not get attachment file (tried original.doc)',
-        'Could not get attachment file (tried text.txt)',
-        'Could not get attachment file (tried image001.png)'
-      ]);
-      const buffer = await streamToBuffer(stream);
-      writeForDebugging(buffer, '114863.eml');
-    } catch (_e) {
-      assertEquals(true, false);
-    }
-  })
-});
+    await t.step('does not fail when flag is set', async () => {
+      try {
+        const stream = new MemoryStream();
+        const messages = await converter.processEmlx(
+          path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
+          stream,
+          true,
+        );
+        assertEquals(messages.length, 4);
+        assertArrayIncludes(messages, [
+          'Could not get attachment file (tried short.txt)',
+          'Could not get attachment file (tried original.doc)',
+          'Could not get attachment file (tried text.txt)',
+          'Could not get attachment file (tried image001.png)',
+        ]);
+        const buffer = await streamToBuffer(stream);
+        writeForDebugging(buffer, '114863.eml');
+      } catch (_e) {
+        assertEquals(true, false);
+      }
+    });
+  },
+);
 
 Deno.test('partial.emlx with attachments without given filename -- #3', async () => {
   const stream = new MemoryStream();
@@ -139,7 +148,11 @@ Deno.test('.partial.emlx with missing line break after boundary string -- #5', a
   const result = buffer.toString('utf8');
   writeForDebugging(buffer, '114895.eml');
 
-  assertMatch(result, /.*--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--\s*$/, 'fixes end boundary string with one hyphen to two hyphens');
+  assertMatch(
+    result,
+    /.*--Apple-Mail=_F073CB14-2AA7-40E0-88F6-8C1A8748438B--\s*$/,
+    'fixes end boundary string with one hyphen to two hyphens',
+  );
 });
 
 Deno.test('.partial.emlx with filename without extension', async () => {
@@ -163,7 +176,7 @@ Deno.test('different boundary strings -- #10', async () => {
   const result = buffer.toString('utf8');
   writeForDebugging(buffer, '11507.eml');
   assertMatch(result, /^X-Antivirus: avg.*/);
-  assertMatch(result,/------=_NextPart_7ae48436ccb4c946256817a6c56cb01c--\n\n$/);
+  assertMatch(result, /------=_NextPart_7ae48436ccb4c946256817a6c56cb01c--\n\n$/);
   assertEquals(result.length, 3685);
 });
 
@@ -173,7 +186,7 @@ Deno.test('SkipEmlxTransform', async (t) => {
     const fileStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-small.txt'));
     const resultStream = fileStream.pipe(new converter.SkipEmlxTransform());
     const buffer = await streamToBuffer(resultStream);
-    assertEquals(buffer.toString('utf8'),'la\nle\nli');
+    assertEquals(buffer.toString('utf8'), 'la\nle\nli');
   });
 
   await t.step('large file', async () => {
@@ -182,21 +195,21 @@ Deno.test('SkipEmlxTransform', async (t) => {
     const buffer = await streamToBuffer(resultStream);
     const result = buffer.toString('utf8');
     assertMatch(result, /^ab.*/);
-    assertMatch(result,/.*bc$/);
-    assertEquals(result.length,537723);
+    assertMatch(result, /.*bc$/);
+    assertEquals(result.length, 537723);
   });
-})
-
-Deno.test('throws error on invalid structure',  {sanitizeOps: false, sanitizeResources: false }, async () => {
-      try {
-      await converter.processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
-      assertEquals(true, false);
-    } catch (e) {
-      assertStringIncludes((e as Error).message, 'Invalid structure; content did not start with payload length');
-    }
 });
 
-Deno.test('message with Latin 1 encoding -- #17', {sanitizeOps: false, sanitizeResources: false }, async () => {
+Deno.test('throws error on invalid structure', { sanitizeOps: false, sanitizeResources: false }, async () => {
+  try {
+    await converter.processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
+    assertEquals(true, false);
+  } catch (e) {
+    assertStringIncludes((e as Error).message, 'Invalid structure; content did not start with payload length');
+  }
+});
+
+Deno.test('message with Latin 1 encoding -- #17', { sanitizeOps: false, sanitizeResources: false }, async () => {
   // https://github.com/qqilihq/partial-emlx-converter/issues/17
   const testFile = path.join(__dirname, '__testdata/encrypted/258310/Messages/258310.partial.emlx');
   if (!fs.existsSync(testFile)) {
@@ -212,7 +225,7 @@ Deno.test('message with Latin 1 encoding -- #17', {sanitizeOps: false, sanitizeR
   writeForDebugging(buffer, '258310.eml');
   const expectedResult = fs.readFileSync(
     path.join(__dirname, '__testdata/encrypted/258310/expected_results/258310.eml'),
-    'binary'
+    'binary',
   );
 
   // properly preserves accented characters
@@ -236,7 +249,7 @@ function writeForDebugging(result: Buffer, filename: string): void {
 function streamToBuffer(readable: Readable): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     const buffers: Buffer[] = [];
-    readable.on('error', error => reject(error));
+    readable.on('error', (error) => reject(error));
     readable.on('data', (b: Buffer) => buffers.push(b));
     readable.on('end', () => resolve(Buffer.concat(buffers)));
   });

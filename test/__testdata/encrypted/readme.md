@@ -4,7 +4,8 @@ Test files in this directory are encrypted because they contain personal data.
 
 ## Encrypting data
 
-1. Run the following to prevent error “gpg Inappropriate ioctl for device” (see [here](https://stackoverflow.com/a/57591830))
+1. Run the following to prevent error “gpg Inappropriate ioctl for device” (see
+   [here](https://stackoverflow.com/a/57591830))
 
    ```shell
    $ GPG_TTY=$(tty); export GPG_TTY
