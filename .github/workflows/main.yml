@@ -9,21 +9,17 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+      - name: Setup Deno environment
+        uses: denoland/setup-deno@v1
         with:
-          # Version Spec of the version to use.  Examples: 10.x, 10.15.1, >=10.15.0
-          node-version: ">=16"
+          deno-version: v1.x      
 
       - name: Lint, test, and build
         run: |
-          npm install -g yarn
-          yarn install
-          yarn lint
-          yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
-          yarn build
+          deno task test
+          deno task build
 
-      - uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/coverage-final.json
-          fail_ci_if_error: true
+      # - uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./coverage/coverage-final.json
+      #     fail_ci_if_error: true
