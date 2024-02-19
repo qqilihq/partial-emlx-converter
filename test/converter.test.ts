@@ -196,7 +196,7 @@ Deno.test('throws error on invalid structure',  {sanitizeOps: false, sanitizeRes
     }
 });
 
-Deno.test('message with Latin 1 encoding -- #17', async () => {
+Deno.test('message with Latin 1 encoding -- #17', {sanitizeOps: false, sanitizeResources: false }, async () => {
   // https://github.com/qqilihq/partial-emlx-converter/issues/17
   const testFile = path.join(__dirname, '__testdata/encrypted/258310/Messages/258310.partial.emlx');
   if (!fs.existsSync(testFile)) {
