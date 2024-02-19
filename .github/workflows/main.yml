@@ -16,6 +16,7 @@ jobs:
 
       - name: Lint, test, and build
         run: |
+          deno task lint
           deno task test
           deno task build
 

@@ -2,6 +2,7 @@
   "tasks": {
     "test": "deno test --allow-read --allow-env --trace-ops",
     "build": "deno compile --allow-read --allow-env --output partial-emlx-converter ./src/run.ts",
+    "lint": "deno lint",
     "format": "deno fmt --line-width 120 --single-quote"
   },
   "test": {
