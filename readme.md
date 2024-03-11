@@ -147,4 +147,4 @@ bug fixes, please provide corresponding test cases and make sure that existing t
 
 ---
 
-Copyright (c) 2018 – 2023 Philipp Katz
+Copyright (c) 2018 – 2024 Philipp Katz
