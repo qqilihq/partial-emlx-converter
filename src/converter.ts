@@ -53,9 +53,9 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
   // see here for a an example how to implement the Rewriter:
   // https://github.com/andris9/mailsplit/blob/master/examples/rewrite-html.js
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // deno-lint-ignore no-explicit-any
   const rewriter = new Rewriter((node: any) => node.headers.hasHeader(appleContentLengthHeader));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // deno-lint-ignore no-explicit-any
   rewriter.on('node', (data: any) => {
     data.node.headers.remove(appleContentLengthHeader);
     data.decoder.on('data', () => {
@@ -85,7 +85,7 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
   return messages;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
   const attachmentDirectoryPath = path.join(
     path.dirname(emlxFile),
