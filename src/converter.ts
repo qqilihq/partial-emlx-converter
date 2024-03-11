@@ -2,8 +2,7 @@ import fs from 'node:fs';
 // @deno-types="npm:@types/glob@7.2.0"
 import glob from 'npm:glob@7.2.0';
 import path from 'node:path';
-// @deno-types="npm:@types/progress@^2.0.5"
-import ProgressBar from 'npm:progress@2.0.3';
+import ProgressBar from 'https://deno.land/x/progress@v1.4.5/mod.ts';
 import util from 'node:util';
 // @ts-ignore - no typings available
 import { Joiner, Rewriter, Splitter } from 'npm:mailsplit@5.4.0';
@@ -17,19 +16,26 @@ const debug = Debug('converter');
 
 export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
   const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
-  const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
-  for (const file of files) {
-    bar.tick({ file });
+  const bar = new ProgressBar({
+    title: 'Converting [:bar] :percent :etas :file',
+    width: 40,
+    total: files.length,
+  });
+  for (let idx = 0; idx < files.length; idx++) {
+    await bar.render(idx);
+    const file = files[idx];
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
       const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
-      messages.forEach((message) => bar.interrupt(`${file}: ${message}`));
+      for (const message of messages) {
+        await bar.console(`${file}: ${message}`);
+      }
     } catch (e) {
-      bar.interrupt(
+      await bar.console(
         `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`,
       );
-      bar.terminate();
+      await bar.end();
       throw e;
     }
   }
