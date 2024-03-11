@@ -17,10 +17,11 @@ jobs:
       - name: Lint, test, and build
         run: |
           deno task lint
-          deno task test
+          deno task test --coverage=coverage
+          deno coverage ./coverage --lcov > ./coverage.lcov
           deno task build
 
-      # - uses: codecov/codecov-action@v3
-      #   with:
-      #     file: ./coverage/coverage-final.json
-      #     fail_ci_if_error: true
+      - uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.lcov
+          fail_ci_if_error: true
