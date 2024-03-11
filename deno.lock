@@ -4,6 +4,7 @@
     "specifiers": {
       "npm:@types/debug@4.1.7": "npm:@types/debug@4.1.7",
       "npm:@types/glob@7.2.0": "npm:@types/glob@7.2.0",
+      "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:debug@4.3.3": "npm:debug@4.3.3",
       "npm:glob@7.2.0": "npm:glob@7.2.0",
       "npm:mailsplit@5.4.0": "npm:mailsplit@5.4.0",
