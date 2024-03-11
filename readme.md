@@ -1,8 +1,8 @@
 # 📧 .emlx and .partial.emlx to .eml converter
 
 [![Actions Status](https://github.com/qqilihq/partial-emlx-converter/workflows/CI/badge.svg)](https://github.com/qqilihq/partial-emlx-converter/actions)
-[![codecov](https://codecov.io/gh/qqilihq/partial-emlx-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/qqilihq/partial-emlx-converter)
-[![npm version](https://badge.fury.io/js/partial-emlx-converter.svg)](https://badge.fury.io/js/partial-emlx-converter)
+<!-- [![codecov](https://codecov.io/gh/qqilihq/partial-emlx-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/qqilihq/partial-emlx-converter)
+[![npm version](https://badge.fury.io/js/partial-emlx-converter.svg)](https://badge.fury.io/js/partial-emlx-converter) -->
 
 This script converts `.emlx` and `.partial.emlx` files written by Apple’s
 [Mail.app](https://en.wikipedia.org/wiki/Mail_(Apple)) into fully self-contained, “stand alone” `.eml` files which can
@@ -19,7 +19,7 @@ That’s why I created this script.
 
 ### With Homebrew
 
-This is the easiest way if you’re not a Node.js developer. Install the script and all dependencies with
+This is the easiest way if you’re not familiar with Deno. Install the script and all dependencies with
 [Homebrew](https://brew.sh):
 
 ```shell
@@ -29,22 +29,22 @@ $ brew install qqilihq/partial-emlx-converter/partial-emlx-converter
 I would like to make this script available in the Homebrew core repository as well, but for this the project needs more
 ⭐️ and 🍴 — please help!
 
-### With NPM/Yarn
+### With Deno
 
-Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS) and run the
-following command to install the script globally with [npm](https://www.npmjs.com):
+Use a current version of [Deno](https://deno.com) (currently built and tested with 1.40.5) and run the following command
+to build a self-contained binary `partial-emlx-converter`:
 
 ```shell
-$ npm install --global partial-emlx-converter
+$ deno task build
 ```
 
 ## Usage
 
-Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx`
+Run the executable with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx`
 files, (2) path to the existing directory where the results should be written to.
 
 ```shell
-$ partial-emlx-converter /path/to/input /path/to/result
+$ ./partial-emlx-converter /path/to/input /path/to/result
 ```
 
 Optionally, you can specify `--ignoreErrors` as third argument. This way, the conversion will not be aborted in case
@@ -52,30 +52,20 @@ there’s an error for a file (see the log output for details in this case).
 
 ## Build
 
-Use a current version of [Node.js](https://nodejs.org/en/) (currently built and tested with v10.15.3 LTS). Install the
-dependencies, run the tests, and compile the TypeScript code with [yarn](https://yarnpkg.com/lang/en/) or npm:
+Use a current version of [Deno](https://deno.com) (currently built and tested with 1.40.5) and run any of the following
+tasks:
 
 ```shell
-$ yarn
-$ yarn test
-$ yarn build
+$ deno lint
+$ deno test
+$ deno format
+$ deno build
 ```
 
-## Releasing to NPM
+## Releasing
 
-Commit all changes and run the following:
-
-```shell
-$ npm login
-$ npm version <update_type>
-$ npm publish
-```
-
-… where `<update_type>` is one of `patch`, `minor`, or `major`. This will update the `package.json`, and create a tagged
-Git commit with the version number.
-
-After releasing a new version, remember to update the Homebrew formula
-[here](https://github.com/qqilihq/homebrew-partial-emlx-converter).
+TODO - figure out how to update the [Homebrew formula]((https://github.com/qqilihq/homebrew-partial-emlx-converter)) to
+make use of the binary.
 
 ## About the file formats
 
