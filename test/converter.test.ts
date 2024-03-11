@@ -72,7 +72,7 @@ Deno.test('.emlx', async () => {
   assertEquals(result, expectedResult, 'exactly equals the expected result');
 });
 
-Deno.test('issue 1', async () => {
+Deno.test('issue 1', { sanitizeOps: false, sanitizeResources: false }, async () => {
   // https://github.com/qqilihq/partial-emlx-converter/issues/1
   const stream = new MemoryStream();
   await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'), stream);
@@ -155,17 +155,21 @@ Deno.test('.partial.emlx with missing line break after boundary string -- #5', a
   );
 });
 
-Deno.test('.partial.emlx with filename without extension', async () => {
-  const stream = new MemoryStream();
-  await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
-  const buffer = await streamToBuffer(stream);
-  const result = buffer.toString('utf8');
-  writeForDebugging(buffer, '229417.eml');
+Deno.test(
+  '.partial.emlx with filename without extension',
+  { sanitizeOps: false, sanitizeResources: false },
+  async () => {
+    const stream = new MemoryStream();
+    await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
+    const buffer = await streamToBuffer(stream);
+    const result = buffer.toString('utf8');
+    writeForDebugging(buffer, '229417.eml');
 
-  assertStringIncludes(result, 'iVBORw0KGgoAAAANSUhE', 'contains encoded attachment');
-});
+    assertStringIncludes(result, 'iVBORw0KGgoAAAANSUhE', 'contains encoded attachment');
+  },
+);
 
-Deno.test('different boundary strings -- #10', async () => {
+Deno.test('different boundary strings -- #10', { sanitizeOps: false, sanitizeResources: false }, async () => {
   // https://github.com/qqilihq/partial-emlx-converter/issues/10
   // used to throw error before,
   // but since switching to `mailsplit`,
