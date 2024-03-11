@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 // @deno-types="npm:@types/glob@7.2.0"
 import glob from 'npm:glob@7.2.0';
-import path from 'node:path';
+import * as path from 'https://deno.land/std@0.219.0/path/mod.ts';
 import ProgressBar from 'https://deno.land/x/progress@v1.4.5/mod.ts';
 import util from 'node:util';
 // @ts-ignore - no typings available
@@ -9,7 +9,6 @@ import { Joiner, Rewriter, Splitter } from 'npm:mailsplit@5.4.0';
 import { pipeline, Transform, TransformCallback, Writable } from 'node:stream';
 // @deno-types="npm:@types/debug@4.1.7"
 import Debug from 'npm:debug@4.3.3';
-import process from 'node:process';
 import { Buffer } from 'node:buffer';
 
 const debug = Debug('converter');
@@ -212,11 +211,15 @@ export class SkipEmlxTransform extends Transform {
 }
 
 export function processCli(): void {
-  const args = process.argv.slice(2);
+  const args = Deno.args;
+  // https://github.com/denoland/deno/issues/15996#issuecomment-1265794279
+  const isCompiled = args.includes('--is_compiled_binary');
+  const programPath = isCompiled ? Deno.execPath() : path.fromFileUrl(Deno.mainModule);
+  const programName = path.basename(programPath);
 
   if (args.length < 2) {
-    console.log(`${path.basename(process.argv[1])} input_directory output_directory [--ignoreErrors]`);
-    process.exit(1);
+    console.log(`${programName} input_directory output_directory [--ignoreErrors]`);
+    Deno.exit(1);
   }
   let ignoreErrors = false;
   if (args.length > 2) {
