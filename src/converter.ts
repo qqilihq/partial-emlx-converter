@@ -113,7 +113,7 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
       });
       processedAttachment = true;
       break;
-    } catch (_e) {
+    } catch {
       // ignore here, keep trying
     }
   }
@@ -154,7 +154,7 @@ async function getFilenameFromFileSystem(pathToDirectory: string): Promise<strin
     } else {
       return files[0];
     }
-  } catch (_e) {
+  } catch {
     debug(`Couldn’t read attachments in '${pathToDirectory}'`);
     return null;
   }
