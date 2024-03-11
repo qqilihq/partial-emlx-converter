@@ -225,7 +225,6 @@ Deno.test('message with Latin 1 encoding -- #17', { sanitizeOps: false, sanitize
   writeForDebugging(buffer, '258310.eml');
   const expectedResult = fs.readFileSync(
     path.join(__dirname, '__testdata/encrypted/258310/expected_results/258310.eml'),
-    'binary',
   );
 
   // properly preserves accented characters
@@ -233,7 +232,7 @@ Deno.test('message with Latin 1 encoding -- #17', { sanitizeOps: false, sanitize
   assertStringIncludes(result, 'Délégation');
 
   // exactly equals the expected result
-  assertEquals(result, expectedResult);
+  assertEquals(result, expectedResult.toString('binary'));
 });
 
 function extractHeader(input: string): string {
