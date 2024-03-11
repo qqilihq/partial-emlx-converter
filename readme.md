@@ -1,6 +1,7 @@
 # 📧 .emlx and .partial.emlx to .eml converter
 
 [![Actions Status](https://github.com/qqilihq/partial-emlx-converter/workflows/CI/badge.svg)](https://github.com/qqilihq/partial-emlx-converter/actions)
+
 <!-- [![codecov](https://codecov.io/gh/qqilihq/partial-emlx-converter/branch/master/graph/badge.svg)](https://codecov.io/gh/qqilihq/partial-emlx-converter)
 [![npm version](https://badge.fury.io/js/partial-emlx-converter.svg)](https://badge.fury.io/js/partial-emlx-converter) -->
 
