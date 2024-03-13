@@ -21,7 +21,7 @@ export async function processEmlxs(inputDir: string, outputDir: string, ignoreEr
     total: files.length,
   });
   for (let idx = 0; idx < files.length; idx++) {
-    await bar.render(idx);
+    await bar.render(idx + 1);
     const file = files[idx];
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
