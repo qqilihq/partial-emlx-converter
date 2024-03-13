@@ -217,6 +217,10 @@ export function processCli(): void {
   const programPath = isCompiled ? Deno.execPath() : path.fromFileUrl(Deno.mainModule);
   const programName = path.basename(programPath);
 
+  if (args[0] === '--is_compiled_binary') {
+    args.shift();
+  }
+
   if (args.length < 2) {
     console.log(`${programName} input_directory output_directory [--ignoreErrors]`);
     Deno.exit(1);
