@@ -16,13 +16,12 @@ const debug = Debug('converter');
 export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
   const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
   const bar = new ProgressBar({
-    title: 'Converting [:bar] :percent :etas :file',
     width: 40,
     total: files.length,
   });
   for (let idx = 0; idx < files.length; idx++) {
-    await bar.render(idx + 1);
     const file = files[idx];
+    await bar.render(idx + 1, { text: file });
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
