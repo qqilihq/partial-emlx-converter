@@ -36,8 +36,10 @@ Use a current version of [Deno](https://deno.com) (currently built and tested wi
 to build a self-contained binary `partial-emlx-converter`:
 
 ```shell
-$ deno task build
+$ deno install -n partial-emlx-converter --allow-read --allow-write --allow-env https://raw.githubusercontent.com/qqilihq/partial-emlx-converter/master/src/run.ts
 ```
+
+Ensure to configure the path if being told so.
 
 ## Usage
 

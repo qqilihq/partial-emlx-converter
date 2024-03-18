@@ -213,8 +213,18 @@ export function processCli(): void {
   const args = Deno.args;
   // https://github.com/denoland/deno/issues/15996#issuecomment-1265794279
   const isCompiled = args.includes('--is_compiled_binary');
-  const programPath = isCompiled ? Deno.execPath() : path.fromFileUrl(Deno.mainModule);
-  const programName = path.basename(programPath);
+  let programName;
+  if (isCompiled) {
+    programName = path.basename(Deno.execPath());
+  } else {
+    try {
+      programName = path.basename(path.fromFileUrl(Deno.mainModule));
+    } catch {
+      // could not determeine (running from https:// URL)
+      // https://github.com/denoland/deno/issues/5725
+      programName = 'partial-emlx-converter';
+    }
+  }
 
   if (args[0] === '--is_compiled_binary') {
     args.shift();
