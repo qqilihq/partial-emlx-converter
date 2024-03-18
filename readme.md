@@ -18,7 +18,7 @@ That’s why I created this script.
 
 ## Installation
 
-### With Homebrew
+<!-- ### With Homebrew
 
 This is the easiest way if you’re not familiar with Deno. Install the script and all dependencies with
 [Homebrew](https://brew.sh):
@@ -28,7 +28,7 @@ $ brew install qqilihq/partial-emlx-converter/partial-emlx-converter
 ```
 
 I would like to make this script available in the Homebrew core repository as well, but for this the project needs more
-⭐️ and 🍴 — please help!
+⭐️ and 🍴 — please help! -->
 
 ### With Deno
 
@@ -65,10 +65,10 @@ $ deno format
 $ deno build
 ```
 
-## Releasing
+<!-- ## Releasing
 
 TODO - figure out how to update the [Homebrew formula]((https://github.com/qqilihq/homebrew-partial-emlx-converter)) to
-make use of the binary.
+make use of the binary. -->
 
 ## About the file formats
 
