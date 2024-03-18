@@ -1,7 +1,6 @@
 import fs from 'node:fs';
-// @deno-types="npm:@types/glob@7.2.0"
-import glob from 'npm:glob@7.2.0';
-import * as path from 'https://deno.land/std@0.219.0/path/mod.ts';
+import { expandGlob } from 'https://deno.land/std@0.220.1/fs/mod.ts';
+import * as path from 'https://deno.land/std@0.220.1/path/mod.ts';
 import ProgressBar from 'https://deno.land/x/progress@v1.4.5/mod.ts';
 import util from 'node:util';
 // @ts-ignore - no typings available
@@ -14,13 +13,14 @@ import { Buffer } from 'node:buffer';
 const debug = Debug('converter');
 
 export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
-  const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
+  const filesIterator = expandGlob('**/*.emlx', { root: inputDir });
+  const files = await Array.fromAsync(filesIterator);
   const bar = new ProgressBar({
     width: 40,
     total: files.length,
   });
   for (let idx = 0; idx < files.length; idx++) {
-    const file = files[idx];
+    const file = files[idx].path;
     await bar.render(idx + 1, { text: file });
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
