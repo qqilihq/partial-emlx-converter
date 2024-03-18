@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --allow-env --trace-ops",
+    "build": "deno compile --allow-read --allow-write --allow-env --output partial-emlx-converter ./src/run.ts --is_compiled_binary",
+    "lint": "deno lint",
+    "format": "deno fmt --line-width 120 --single-quote"
+  },
+  "test": {
+    "include": ["test/"]
+  }
+}

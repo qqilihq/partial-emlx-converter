@@ -1,30 +1,39 @@
-import * as fs from 'fs';
-import * as glob from 'glob';
-import * as path from 'path';
-import * as ProgressBar from 'progress';
-import * as util from 'util';
-// @ts-ignore
-import { Splitter, Joiner, Rewriter } from 'mailsplit';
-import { Transform, TransformCallback, pipeline, Writable } from 'stream';
-import * as Debug from 'debug';
+import fs from 'node:fs';
+import { expandGlob } from 'https://deno.land/std@0.220.1/fs/mod.ts';
+import * as path from 'https://deno.land/std@0.220.1/path/mod.ts';
+import ProgressBar from 'https://deno.land/x/progress@v1.4.5/mod.ts';
+import util from 'node:util';
+// @ts-ignore - no typings available
+import { Joiner, Rewriter, Splitter } from 'npm:mailsplit@5.4.0';
+import { pipeline, Transform, TransformCallback, Writable } from 'node:stream';
+// @deno-types="npm:@types/debug@4.1.7"
+import Debug from 'npm:debug@4.3.3';
+import { Buffer } from 'node:buffer';
 
 const debug = Debug('converter');
 
 export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
-  const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
-  const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
-  for (const file of files) {
-    bar.tick({ file });
+  const filesIterator = expandGlob('**/*.emlx', { root: inputDir });
+  const files = await Array.fromAsync(filesIterator);
+  const bar = new ProgressBar({
+    width: 40,
+    total: files.length,
+  });
+  for (let idx = 0; idx < files.length; idx++) {
+    const file = files[idx].path;
+    await bar.render(idx + 1, { text: file });
     try {
       const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
       const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
-      messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+      for (const message of messages) {
+        await bar.console(`${file}: ${message}`);
+      }
     } catch (e) {
-      bar.interrupt(
-        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+      await bar.console(
+        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`,
       );
-      bar.terminate();
+      await bar.end();
       throw e;
     }
   }
@@ -48,16 +57,16 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
   // see here for a an example how to implement the Rewriter:
   // https://github.com/andris9/mailsplit/blob/master/examples/rewrite-html.js
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // deno-lint-ignore no-explicit-any
   const rewriter = new Rewriter((node: any) => node.headers.hasHeader(appleContentLengthHeader));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // deno-lint-ignore no-explicit-any
   rewriter.on('node', (data: any) => {
     data.node.headers.remove(appleContentLengthHeader);
     data.decoder.on('data', () => {
       // no op (callback needs to be here though!)
     });
     data.decoder.on('end', () => {
-      integrateAttachment(emlxFile, data).catch(err => {
+      integrateAttachment(emlxFile, data).catch((err) => {
         // propagate error event
         if (ignoreErrors) {
           // just store in `messages`
@@ -75,26 +84,26 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
     new Splitter(),
     rewriter,
     new Joiner(),
-    resultStream
+    resultStream,
   );
   return messages;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// deno-lint-ignore no-explicit-any
 async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
   const attachmentDirectoryPath = path.join(
     path.dirname(emlxFile),
     '..',
     'Attachments',
     stripExtension(path.basename(emlxFile)),
-    data.node.partNr.join('.') // e.g. array [1, 1, 2]
+    data.node.partNr.join('.'), // e.g. array [1, 1, 2]
   );
   // first try to get the name as explicitly specified in the email text
   // (this seems like the most reliable way), but if that does not work,
   // check the `Attachments` directory structure. See:
   // https://github.com/qqilihq/partial-emlx-converter/issues/3
   const fileNames = [data.node.filename, await getFilenameFromFileSystem(attachmentDirectoryPath)].filter(
-    (f): f is string => !!f
+    (f): f is string => !!f,
   );
   let processedAttachment = false;
   for (const fileName of fileNames) {
@@ -102,13 +111,13 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     try {
       await new Promise<void>((resolve, reject) => {
         const stream = fs.createReadStream(filePath);
-        stream.on('error', error => reject(error));
+        stream.on('error', (error) => reject(error));
         stream.on('close', () => resolve());
         stream.pipe(data.encoder);
       });
       processedAttachment = true;
       break;
-    } catch (e) {
+    } catch {
       // ignore here, keep trying
     }
   }
@@ -138,18 +147,18 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
 async function getFilenameFromFileSystem(pathToDirectory: string): Promise<string | null> {
   try {
     // ignore `.DS_Store`
-    const files = (await fs.promises.readdir(pathToDirectory)).filter(file => !file.startsWith('.DS_Store'));
+    const files = (await fs.promises.readdir(pathToDirectory)).filter((file) => !file.startsWith('.DS_Store'));
     if (files.length !== 1) {
       const filenames = files.length > 0 ? `(${files.join(', ')})` : '';
       debug(
         `Couldn’t determine attachment; expected '${pathToDirectory}' ` +
-          `to contain one file, but there were: ${files.length} ${filenames}`
+          `to contain one file, but there were: ${files.length} ${filenames}`,
       );
       return null;
     } else {
       return files[0];
     }
-  } catch (e) {
+  } catch {
     debug(`Couldn’t read attachments in '${pathToDirectory}'`);
     return null;
   }
@@ -201,16 +210,34 @@ export class SkipEmlxTransform extends Transform {
 }
 
 export function processCli(): void {
-  const args = process.argv.slice(2);
+  const args = Deno.args;
+  // https://github.com/denoland/deno/issues/15996#issuecomment-1265794279
+  const isCompiled = args.includes('--is_compiled_binary');
+  let programName;
+  if (isCompiled) {
+    programName = path.basename(Deno.execPath());
+  } else {
+    try {
+      programName = path.basename(path.fromFileUrl(Deno.mainModule));
+    } catch {
+      // could not determeine (running from https:// URL)
+      // https://github.com/denoland/deno/issues/5725
+      programName = 'partial-emlx-converter';
+    }
+  }
+
+  if (args[0] === '--is_compiled_binary') {
+    args.shift();
+  }
 
   if (args.length < 2) {
-    console.log(`${path.basename(process.argv[1])} input_directory output_directory [--ignoreErrors]`);
-    process.exit(1);
+    console.log(`${programName} input_directory output_directory [--ignoreErrors]`);
+    Deno.exit(1);
   }
   let ignoreErrors = false;
   if (args.length > 2) {
     ignoreErrors = args[2] === '--ignoreErrors';
   }
 
-  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch(err => console.error(err));
+  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch((err) => console.error(err));
 }
