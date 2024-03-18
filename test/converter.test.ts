@@ -1,4 +1,3 @@
-import 'npm:mocha@10.2.0';
 import * as path from 'node:path';
 import * as converter from '../src/converter.ts';
 import * as fs from 'node:fs';
