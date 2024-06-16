@@ -23,7 +23,9 @@ jobs:
           yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
           yarn build
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4.0.0
         with:
           file: ./coverage/coverage-final.json
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
