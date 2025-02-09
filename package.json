@@ -33,6 +33,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "commander": "^13.1.0",
     "debug": "^4.3.3",
     "glob": "^7.2.0",
     "mailsplit": "^5.4.0",
@@ -41,6 +42,7 @@
     "progress": "^2.0.3"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.5",
     "@types/debug": "^4.1.7",
     "@types/expect.js": "^0.3.29",
     "@types/glob": "^7.2.0",

@@ -3,6 +3,8 @@ import * as glob from 'glob';
 import * as path from 'path';
 import * as ProgressBar from 'progress';
 import * as util from 'util';
+import * as commander from 'commander';
+
 // @ts-ignore
 import { Splitter, Joiner, Rewriter } from 'mailsplit';
 import { Transform, TransformCallback, pipeline, Writable } from 'stream';
@@ -201,16 +203,18 @@ export class SkipEmlxTransform extends Transform {
 }
 
 export function processCli(): void {
-  const args = process.argv.slice(2);
+  const program = new commander.Command();
+  program.name('partial-emlx-converter').description('Read .emlx files and convert them to .elm files');
 
-  if (args.length < 2) {
-    console.log(`${path.basename(process.argv[1])} input_directory output_directory [--ignoreErrors]`);
-    process.exit(1);
-  }
-  let ignoreErrors = false;
-  if (args.length > 2) {
-    ignoreErrors = args[2] === '--ignoreErrors';
-  }
+  program
+    .command('convert', { isDefault: true })
+    .description('convert .emlx-files from input folder to .eml files in output folder')
+    .option('--ignoreErrors', "Don't abort conversion on error (see the log output for details in this case)")
+    .argument('<input_directory>', 'input folder to read .emlx-files from')
+    .argument('<output_directory>', 'output folder for .eml-files')
+    .action((inputDir: string, outputDir: string, options: { ignoreErrors?: boolean }) => {
+      processEmlxs(inputDir, outputDir, options.ignoreErrors).catch(err => console.error(err));
+    });
 
-  processEmlxs(/* inputDir */ args[0], /* outputDir */ args[1], ignoreErrors).catch(err => console.error(err));
+  program.parse(process.argv);
 }
