@@ -40,6 +40,7 @@ $ partial-emlx-converter /path/to/input /path/to/result
 ```
 
 Optionally, you can specify `--ignoreErrors` as third argument. This way, the conversion will not be aborted in case there’s an error for a file (see the log output for details in this case).
+You can also use `--skipDeleted` to skip messages marked as deleted in the emlx flags.
 
 ## Build
 

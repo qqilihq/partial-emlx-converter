@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as ProgressBar from 'progress';
 import * as util from 'util';
 import * as commander from 'commander';
+import * as plist from 'plist';
 
 // @ts-ignore
 import { Splitter, Joiner, Rewriter } from 'mailsplit';
@@ -12,17 +13,33 @@ import * as Debug from 'debug';
 
 const debug = Debug('converter');
 
-export async function processEmlxs(inputDir: string, outputDir: string, ignoreErrors?: boolean): Promise<void> {
+class DeletedMessageError extends Error {
+  constructor(...args: string[] | undefined[]) {
+    super(...args);
+    this.name = 'DeletedMessageError';
+  }
+}
+
+export async function processEmlxs(
+  inputDir: string,
+  outputDir: string,
+  ignoreErrors?: boolean,
+  skipDeleted?: boolean
+): Promise<void> {
   const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
   const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
   for (const file of files) {
     bar.tick({ file });
+    const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
     try {
-      const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
       const writeStream = fs.createWriteStream(resultPath);
-      const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors);
+      const messages = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors, skipDeleted);
       messages.forEach(message => bar.interrupt(`${file}: ${message}`));
     } catch (e) {
+      if (e instanceof DeletedMessageError && e.message == 'DELETED') {
+        bar.interrupt(`${file}: Message is marked as deleted (skipped)`);
+        continue;
+      }
       bar.interrupt(
         `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
       );
@@ -45,7 +62,12 @@ const appleContentLengthHeader = 'X-Apple-Content-Length';
  * result array will contain a list of errors.
  * @returns List of error messages (when `ignoreErrors` was enabled)
  */
-export async function processEmlx(emlxFile: string, resultStream: Writable, ignoreErrors = false): Promise<string[]> {
+export async function processEmlx(
+  emlxFile: string,
+  resultStream: Writable,
+  ignoreErrors = false,
+  skipDeleted = false
+): Promise<string[]> {
   const messages: string[] = [];
   // see here for a an example how to implement the Rewriter:
   // https://github.com/andris9/mailsplit/blob/master/examples/rewrite-html.js
@@ -73,7 +95,7 @@ export async function processEmlx(emlxFile: string, resultStream: Writable, igno
   });
   await util.promisify(pipeline)(
     fs.createReadStream(emlxFile),
-    new SkipEmlxTransform(),
+    new SkipEmlxTransform(skipDeleted),
     new Splitter(),
     rewriter,
     new Joiner(),
@@ -161,12 +183,38 @@ function stripExtension(fileName: string): string {
   return fileName.replace(/\..*/, '');
 }
 
+export const EmlxFlagNames = [
+  'read', // 0
+  'deleted',
+  'answered',
+  'encrypted',
+  'flagged',
+  'recent',
+  'draft',
+  'initial',
+  'forwarded',
+  'redirected', // 9
+  'signed', // 23
+  'junk',
+  'notJunk'
+] as const;
+
+export type EmlxFlags = typeof EmlxFlagNames[number];
+
 // emlx file contain the length of the 'payload' in the first line;
 // this allows to strip away the plist epilogue at the end of the
 // files easily
 export class SkipEmlxTransform extends Transform {
   private bytesToRead: number | undefined = undefined;
   private bytesRead = 0;
+  private skipDeleted: boolean;
+  private plistChunks: Buffer[] = [];
+
+  constructor(skipDeleted: boolean) {
+    super();
+    this.skipDeleted = skipDeleted;
+  }
+
   _transform(chunk: Buffer, _encoding: string, callback: TransformCallback): void {
     let offset: number;
     let length: number;
@@ -197,8 +245,39 @@ export class SkipEmlxTransform extends Transform {
           slicedChunk = Buffer.concat([slicedChunk, Buffer.from('-')]);
         }
       }
+      this.plistChunks.push(chunk.slice(length, chunk.length));
     }
     callback(undefined, slicedChunk);
+  }
+
+  _flush(callback: TransformCallback): void {
+    // we parse & process the trailing plist data from the emlx file
+    const plistDict = Buffer.concat(this.plistChunks).toString('utf8');
+    const plData = plist.parse(plistDict) as plist.PlistObject;
+
+    // the flags are documented here: https://docs.fileformat.com/email/emlx/
+    const flags = plData['flags'] as number;
+    const flagNames: EmlxFlags[] = [];
+    let flagBit = 0;
+    for (const flagName of EmlxFlagNames) {
+      const mask = 1 << flagBit;
+      if (flags & mask) {
+        flagNames.push(flagName);
+      }
+      if (flagBit == 9) {
+        // flags jump from bit 9 to bit 23 (10-15: attachment count; 16-22: prio)
+        flagBit = 23;
+      } else {
+        flagBit++;
+      }
+    }
+
+    // skip deleted messages
+    if (this.skipDeleted && flagNames.includes('deleted')) {
+      callback(new DeletedMessageError('DELETED'));
+    } else {
+      callback();
+    }
   }
 }
 
@@ -209,11 +288,12 @@ export function processCli(): void {
   program
     .command('convert', { isDefault: true })
     .description('convert .emlx-files from input folder to .eml files in output folder')
-    .option('--ignoreErrors', "Don't abort conversion on error (see the log output for details in this case)")
+    .option('--ignoreErrors', "Don't abort the conversion on error (see the log output for details in this case)")
+    .option('--skipDeleted', 'Skip messages marked as deleted')
     .argument('<input_directory>', 'input folder to read .emlx-files from')
     .argument('<output_directory>', 'output folder for .eml-files')
-    .action((inputDir: string, outputDir: string, options: { ignoreErrors?: boolean }) => {
-      processEmlxs(inputDir, outputDir, options.ignoreErrors).catch(err => console.error(err));
+    .action((inputDir: string, outputDir: string, options: { ignoreErrors?: boolean; skipDeleted?: boolean }) => {
+      processEmlxs(inputDir, outputDir, options.ignoreErrors, options.skipDeleted).catch(err => console.error(err));
     });
 
   program.parse(process.argv);
