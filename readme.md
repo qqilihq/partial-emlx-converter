@@ -33,14 +33,58 @@ $ npm install --global partial-emlx-converter
 
 ## Usage
 
+`partial-emlx-converter` supports to operation modes: `convert` to convert `.emlx` files to `.eml` files, and `imapImport` for importing `.emlx` files directly to an IMAP server.
+
+### `convert` mode
+
 Run the script with at least two arguments: (1) Path to the directory which contains the `.emlx` and `.partial.emlx` files, (2) path to the existing directory where the results should be written to.
 
 ```shell
+$ partial-emlx-converter convert
+Usage: partial-emlx-converter convert [options] <input_directory> <output_directory>
+
+convert .emlx-files from input folder to .eml files in output folder
+
+Arguments:
+  input_directory   input folder to read .emlx-files from
+  output_directory  output folder for .eml-files
+
+Options:
+  --ignoreErrors    Don't abort the conversion on error (see the log output for details in this case)
+  --skipDeleted     Skip messages marked as deleted
+  -h, --help        display help for command
+
+# sample
 $ partial-emlx-converter /path/to/input /path/to/result
 ```
 
 Optionally, you can specify `--ignoreErrors` as third argument. This way, the conversion will not be aborted in case there’s an error for a file (see the log output for details in this case).
 You can also use `--skipDeleted` to skip messages marked as deleted in the emlx flags.
+
+### `imapImport` mode
+
+With the IMAP import, additional context information (IMAP Flags / received timestamps) from the .elmx attached plist object is used.
+
+```shell
+$ ./bin/partial-emlx-converter imapImport --help
+Usage: partial-emlx-converter imapImport [options] <input_directory>
+
+Import mails from emlx to IMAP server
+
+Arguments:
+  input_directory          input folder to read .emlx-files from
+
+Options:
+  -p,--port <port_number>  IMAP port (default: 993)
+  -u,--user <username>     User for IMAP authentication
+  --pass <password>        Password for IMAP authentication (env: IMAP_PASS)
+  -h,--host <hostname>     IMAP server hostname
+  -m,--mailbox <mailbox>   IMAP mailbox to import mails into (default: "import")
+  --tls <mode>             Use `no` to disable TLS (choices: "yes", "no", default: tls enabled)
+  --skipDeleted            Skip messages marked as deleted
+  --ignoreErrors           Don't abort conversion on error (see the log output for details in this case)
+  --help                   display help for command
+```
 
 ## Build
 
