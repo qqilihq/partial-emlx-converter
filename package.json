@@ -33,20 +33,26 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "commander": "^13.1.0",
     "debug": "^4.3.3",
     "glob": "^7.2.0",
+    "imapflow": "^1.0.181",
     "mailsplit": "^5.4.0",
     "patch-package": "^6.4.7",
+    "plist": "^3.1.0",
     "postinstall-postinstall": "^2.1.0",
     "progress": "^2.0.3"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.5",
     "@types/debug": "^4.1.7",
     "@types/expect.js": "^0.3.29",
     "@types/glob": "^7.2.0",
+    "@types/imapflow": "^1.0.19",
     "@types/memorystream": "^0.3.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^10",
+    "@types/plist": "^3.0.5",
     "@types/progress": "^2.0.5",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",

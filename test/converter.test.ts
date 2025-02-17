@@ -122,7 +122,7 @@ describe('converter', () => {
     it('does not fail when flag is set', async () => {
       try {
         const stream = new MemoryStream();
-        const messages = await converter.processEmlx(
+        const { messages } = await converter.processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
           stream,
           true
@@ -270,6 +270,26 @@ describe('converter', () => {
 
     it('exactly equals the expected result', () => {
       expect(result).to.eql(expectedResult);
+    });
+  });
+
+  it('parses additional flags', async () => {
+    const result = await converter.processEmlx(
+      path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'),
+      new MemoryStream()
+    );
+
+    expect(result.flags).length(3);
+    expect(result.flags).contain('read');
+    expect(result.flags).contain('initial');
+    expect(result.flags).contain('notJunk');
+
+    expect(result.plData).eql({
+      color: '000000',
+      'date-last-viewed': 1517000482,
+      'date-received': 1517000478,
+      flags: 8623689857,
+      'remote-id': '50758'
     });
   });
 });
