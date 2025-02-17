@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] – 2025-02-17
+
+### Added
+* Add new `imapImport` mode which allows importing `.emlx` files directly to an IMAP server (thank you to [marvkis](https://github.com/marvkis) for the [contribution](https://github.com/qqilihq/partial-emlx-converter/pull/44)!)
+* Add `--skipDeleted` option (thank you to [marvkis](https://github.com/marvkis) for the [contribution](https://github.com/qqilihq/partial-emlx-converter/pull/44)!)
+
+### Changed
+* Use `commander` for CLI parsing (thank you to [marvkis](https://github.com/marvkis) for the [contribution](https://github.com/qqilihq/partial-emlx-converter/pull/44)!)
+
 ## [3.0.4] – 2023-01-06
 
 ### Fixed
