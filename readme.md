@@ -63,7 +63,7 @@ You can also use `--skipDeleted` to skip messages marked as deleted in the emlx 
 
 ### `imapImport` mode
 
-With the IMAP import, additional context information (IMAP Flags / received timestamps) from the .elmx attached plist object is used.
+With the IMAP import, additional context information (IMAP Flags / received timestamps) from the .emlx attached plist object is used.
 
 ```shell
 $ ./bin/partial-emlx-converter imapImport --help

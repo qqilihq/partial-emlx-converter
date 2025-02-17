@@ -393,7 +393,7 @@ export class SkipEmlxTransform extends Transform {
 
 export function processCli(): void {
   const program = new commander.Command();
-  program.name('partial-emlx-converter').description('Read .emlx files and convert them to .elm files');
+  program.name('partial-emlx-converter').description('Read .emlx files and convert them to .eml files');
 
   program
     .command('convert', { isDefault: true })
