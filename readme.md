@@ -175,8 +175,8 @@ Beside that, here are some resources which I found very helpful during developme
 
 ## Contributing
 
-Pull requests are very welcome. Feel free to discuss bugs or new features by opening a new issue. In case you submit any bug fixes, please provide corresponding test cases and make sure that existing tests do not break.
+Pull requests are very welcome and I highly appreciate any [contributions](https://github.com/qqilihq/partial-emlx-converter/graphs/contributors). Feel free to discuss bugs or new features by opening a new issue. In case you submit any bug fixes, please provide corresponding test cases and make sure that existing tests do not break.
 
 - - -
 
-Copyright (c) 2018 – 2023 Philipp Katz
+Copyright (c) 2018 – 2025 Philipp Katz
