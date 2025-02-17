@@ -122,7 +122,7 @@ describe('converter', () => {
     it('does not fail when flag is set', async () => {
       try {
         const stream = new MemoryStream();
-        const messages = await converter.processEmlx(
+        const { messages } = await converter.processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
           stream,
           true

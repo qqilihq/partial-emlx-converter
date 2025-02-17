@@ -317,7 +317,7 @@ export class SkipEmlxTransform extends Transform {
   public readonly flags: EmlxFlags[] = [];
   public plData: plist.PlistObject = {};
 
-  constructor(skipDeleted: boolean) {
+  constructor(skipDeleted = false) {
     super();
     this.skipDeleted = skipDeleted;
   }
@@ -360,22 +360,26 @@ export class SkipEmlxTransform extends Transform {
   _flush(callback: TransformCallback): void {
     // we parse & process the trailing plist data from the emlx file
     const plistDict = Buffer.concat(this.plistChunks).toString('utf8');
-    this.plData = plist.parse(plistDict) as plist.PlistObject;
+    try {
+      this.plData = plist.parse(plistDict) as plist.PlistObject;
 
-    // the flags are documented here: https://docs.fileformat.com/email/emlx/
-    const flagsVal = this.plData['flags'] as number;
-    let flagBit = 0;
-    for (const flagName of EmlxFlagNames) {
-      const mask = 1 << flagBit;
-      if (flagsVal & mask) {
-        this.flags.push(flagName);
+      // the flags are documented here: https://docs.fileformat.com/email/emlx/
+      const flagsVal = this.plData['flags'] as number;
+      let flagBit = 0;
+      for (const flagName of EmlxFlagNames) {
+        const mask = 1 << flagBit;
+        if (flagsVal & mask) {
+          this.flags.push(flagName);
+        }
+        if (flagBit == 9) {
+          // flags jump from bit 9 to bit 23 (10-15: attachment count; 16-22: prio)
+          flagBit = 23;
+        } else {
+          flagBit++;
+        }
       }
-      if (flagBit == 9) {
-        // flags jump from bit 9 to bit 23 (10-15: attachment count; 16-22: prio)
-        flagBit = 23;
-      } else {
-        flagBit++;
-      }
+    } catch {
+      // ignore plist parsing errors
     }
 
     // skip deleted messages
