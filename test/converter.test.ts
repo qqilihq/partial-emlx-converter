@@ -1,10 +1,12 @@
-import expect = require('expect.js');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const expect = require('expect.js');
 import 'mocha';
 import * as path from 'path';
 import * as converter from '../src/converter';
 import * as fs from 'fs';
 import * as os from 'os';
-import MemoryStream = require('memorystream');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MemoryStream = require('memorystream');
 import { Readable } from 'stream';
 
 /** enable to write results to home dir. */
