@@ -22,9 +22,70 @@ class DeletedMessageError extends Error {
   }
 }
 
-async function setupEnv(inputDir: string) {
+/**
+ * Progress reporter interface for API integration.
+ * Provides progress updates during conversion.
+ */
+export interface ProgressReporter {
+  /**
+   * Called when starting to process files
+   * @param total Total number of files to process
+   */
+  onStart?(total: number): void;
+
+  /**
+   * Called for each file being processed
+   * @param current Current file number (1-based)
+   * @param total Total number of files
+   * @param fileName Name of the file being processed
+   */
+  onProgress?(current: number, total: number, fileName: string): void;
+
+  /**
+   * Called when all files are processed
+   */
+  onComplete?(): void;
+}
+
+/**
+ * Logger interface for API integration.
+ * Captures log messages and diagnostics.
+ */
+export interface Logger {
+  /**
+   * Log an informational message
+   * @param message The message to log
+   */
+  info?(message: string): void;
+
+  /**
+   * Log a warning message
+   * @param message The warning message
+   */
+  warn?(message: string): void;
+
+  /**
+   * Log an error message
+   * @param message The error message
+   */
+  error?(message: string): void;
+
+  /**
+   * Log a debug message
+   * @param message The debug message
+   */
+  debug?(message: string): void;
+}
+
+async function setupEnv(inputDir: string, progressReporter?: ProgressReporter) {
   const files = await glob('**/*.emlx', { cwd: inputDir });
   const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
+
+  // Notify progress reporter if provided
+  if (progressReporter?.onStart) {
+    progressReporter.onStart(files.length);
+  }
+
   return { files, bar };
 }
 
@@ -32,28 +93,54 @@ export async function processEmlxs(
   inputDir: string,
   outputDir: string,
   ignoreErrors?: boolean,
-  skipDeleted?: boolean
+  skipDeleted?: boolean,
+  progressReporter?: ProgressReporter,
+  logger?: Logger
 ): Promise<void> {
-  const { files, bar } = await setupEnv(inputDir);
-  for (const file of files) {
+  const { files, bar } = await setupEnv(inputDir, progressReporter);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     bar.tick({ file });
+
+    // Report progress via API
+    if (progressReporter?.onProgress) {
+      progressReporter.onProgress(i + 1, files.length, file);
+    }
+
     const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
     try {
       const writeStream = fs.createWriteStream(resultPath);
-      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors, skipDeleted);
-      res.messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors, skipDeleted, logger);
+      res.messages.forEach(message => {
+        const logMsg = `${file}: ${message}`;
+        bar.interrupt(logMsg);
+        if (logger?.warn) {
+          logger.warn(logMsg);
+        }
+      });
     } catch (e) {
       if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-        bar.interrupt(`${file}: Message is marked as deleted (skipped)`);
+        const logMsg = `${file}: Message is marked as deleted (skipped)`;
+        bar.interrupt(logMsg);
+        if (logger?.info) {
+          logger.info(logMsg);
+        }
         fs.unlinkSync(resultPath);
         continue;
       }
-      bar.interrupt(
-        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
-      );
+      const errorMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
+      bar.interrupt(errorMsg);
+      if (logger?.error) {
+        logger.error(errorMsg);
+      }
       bar.terminate();
       throw e;
     }
+  }
+
+  // Notify completion
+  if (progressReporter?.onComplete) {
+    progressReporter.onComplete();
   }
 }
 
@@ -68,6 +155,8 @@ export async function imapImport(
     user: string;
     pass: string;
     mailbox: string;
+    progressReporter?: ProgressReporter;
+    logger?: Logger;
   }
 ): Promise<void> {
   const conn = new ImapFlow({
@@ -81,10 +170,17 @@ export async function imapImport(
     logger: false
   });
   await conn.connect();
-  const { files, bar } = await setupEnv(inputDir);
+  const { files, bar } = await setupEnv(inputDir, options.progressReporter);
   try {
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       bar.tick({ file });
+
+      // Report progress via API
+      if (options.progressReporter?.onProgress) {
+        options.progressReporter.onProgress(i + 1, files.length, file);
+      }
+
       try {
         let writeStream: stream.Writable;
         const writeStreamCollector = new Promise<Buffer>(resolve => {
@@ -105,9 +201,16 @@ export async function imapImport(
           path.join(inputDir, file),
           writeStream!,
           options.ignoreErrors,
-          options.skipDeleted
+          options.skipDeleted,
+          options.logger
         );
-        res.messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+        res.messages.forEach(message => {
+          const logMsg = `${file}: ${message}`;
+          bar.interrupt(logMsg);
+          if (options.logger?.warn) {
+            options.logger.warn(logMsg);
+          }
+        });
         const msgData = await writeStreamCollector;
         const dateRecvTS = res.plData['date-received'] as number | undefined;
         let dateRecv: Date;
@@ -131,20 +234,35 @@ export async function imapImport(
         await conn.append(options.mailbox, msgData, imapFlags, dateRecv);
       } catch (e) {
         if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-          bar.interrupt(`${file}: Message is marked as deleted (skipped)`);
+          const logMsg = `${file}: Message is marked as deleted (skipped)`;
+          bar.interrupt(logMsg);
+          if (options.logger?.info) {
+            options.logger.info(logMsg);
+          }
           continue;
         }
         if (e instanceof Error) {
-          bar.interrupt(`Caught Error: ${e.message}`);
+          const errorMsg = `Caught Error: ${e.message}`;
+          bar.interrupt(errorMsg);
+          if (options.logger?.error) {
+            options.logger.error(errorMsg);
+          }
           if (e.message.startsWith('Could not get attachment')) {
-            bar.interrupt(
-              `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
-            );
+            const warnMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
+            bar.interrupt(warnMsg);
+            if (options.logger?.warn) {
+              options.logger.warn(warnMsg);
+            }
           }
         }
         bar.terminate();
         throw e;
       }
+    }
+
+    // Notify completion
+    if (options.progressReporter?.onComplete) {
+      options.progressReporter.onComplete();
     }
   } finally {
     await conn.logout();
@@ -162,13 +280,16 @@ const appleContentLengthHeader = 'X-Apple-Content-Length';
  * @param ignoreErrors `true` to suppress throwing errors
  * (e.g. when attachment is missing). In this case, the
  * result array will contain a list of errors.
+ * @param skipDeleted `true` to skip messages marked as deleted
+ * @param logger Optional logger for capturing diagnostic messages
  * @returns List of error messages (when `ignoreErrors` was enabled)
  */
 export async function processEmlx(
   emlxFile: string,
   resultStream: Writable,
   ignoreErrors = false,
-  skipDeleted = false
+  skipDeleted = false,
+  logger?: Logger
 ): Promise<{ messages: string[]; flags: EmlxFlags[]; plData: PlistObject }> {
   const messages: string[] = [];
   // see here for a an example how to implement the Rewriter:
@@ -184,13 +305,19 @@ export async function processEmlx(
     });
     data.decoder.on('end', () => {
       // console.log(`\n\n${emlxFile} ${JSON.stringify(data.node.parentNode.headers.lines, null, 2)}\n\n`);
-      integrateAttachment(emlxFile, data).catch(err => {
+      integrateAttachment(emlxFile, data, logger).catch(err => {
         // propagate error event
         if (ignoreErrors) {
           // just store in `messages`
           messages.push(err.message);
+          if (logger?.warn) {
+            logger.warn(`${emlxFile}: ${err.message}`);
+          }
         } else {
           // emit (and then throw)
+          if (logger?.error) {
+            logger.error(`${emlxFile}: ${err.message}`);
+          }
           rewriter.emit('error', err);
         }
       });
@@ -209,7 +336,7 @@ export async function processEmlx(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
+async function integrateAttachment(emlxFile: string, data: any, logger?: Logger): Promise<void> {
   const attachmentDirectoryPath = path.join(
     path.dirname(emlxFile),
     '..',
@@ -245,6 +372,9 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     let message = 'Could not get attachment file';
     if (fileNames.length > 0) {
       message += ` (tried ${fileNames.join(', ')})`;
+    }
+    if (logger?.error) {
+      logger.error(`${emlxFile}: ${message}`);
     }
     throw new Error(message);
   }
