@@ -305,7 +305,7 @@ export async function processEmlx(
     });
     data.decoder.on('end', () => {
       // console.log(`\n\n${emlxFile} ${JSON.stringify(data.node.parentNode.headers.lines, null, 2)}\n\n`);
-      integrateAttachment(emlxFile, data, logger).catch(err => {
+      integrateAttachment(emlxFile, data, logger).catch((err: Error) => {
         // propagate error event
         if (ignoreErrors) {
           // just store in `messages`
