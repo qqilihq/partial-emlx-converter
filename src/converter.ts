@@ -106,8 +106,10 @@ export async function processEmlxs(
   const { files, bar } = await setupEnv(inputDir, progressReporter);
   for (let i = 0; i < files.length; i++) {
     // Check for cancellation
-    if (progressReporter?.isCancelled?.()) {
-      logger?.info('Conversion cancelled by user');
+    if (progressReporter?.isCancelled && progressReporter.isCancelled()) {
+      if (logger?.info) {
+        logger.info('Conversion cancelled by user');
+      }
       break;
     }
 
@@ -186,8 +188,10 @@ export async function imapImport(
   try {
     for (let i = 0; i < files.length; i++) {
       // Check for cancellation
-      if (options.progressReporter?.isCancelled?.()) {
-        options.logger?.info('Conversion cancelled by user');
+      if (options.progressReporter?.isCancelled && options.progressReporter.isCancelled()) {
+        if (options.logger?.info) {
+          options.logger.info('Conversion cancelled by user');
+        }
         break;
       }
 
