@@ -45,6 +45,12 @@ export interface ProgressReporter {
    * Called when all files are processed
    */
   onComplete?(): void;
+
+  /**
+   * Called to check if the conversion should be cancelled
+   * @returns true if the conversion should be cancelled, false otherwise
+   */
+  isCancelled?(): boolean;
 }
 
 /**
@@ -99,6 +105,12 @@ export async function processEmlxs(
 ): Promise<void> {
   const { files, bar } = await setupEnv(inputDir, progressReporter);
   for (let i = 0; i < files.length; i++) {
+    // Check for cancellation
+    if (progressReporter?.isCancelled?.()) {
+      logger?.info('Conversion cancelled by user');
+      break;
+    }
+
     const file = files[i];
     bar.tick({ file });
 
@@ -173,6 +185,12 @@ export async function imapImport(
   const { files, bar } = await setupEnv(inputDir, options.progressReporter);
   try {
     for (let i = 0; i < files.length; i++) {
+      // Check for cancellation
+      if (options.progressReporter?.isCancelled?.()) {
+        options.logger?.info('Conversion cancelled by user');
+        break;
+      }
+
       const file = files[i];
       bar.tick({ file });
 
