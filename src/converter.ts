@@ -92,6 +92,20 @@ async function setupEnv(inputDir: string, progressReporter?: ProgressReporter) {
   return { files };
 }
 
+/**
+ * Options for processEmlxs function
+ */
+export interface ProcessEmlxsOptions {
+  inputDir: string;
+  outputDir: string;
+  ignoreErrors?: boolean;
+  skipDeleted?: boolean;
+  progressReporter?: ProgressReporter;
+  logger?: Logger;
+}
+
+// Overload signatures for backward compatibility
+export async function processEmlxs(options: ProcessEmlxsOptions): Promise<void>;
 export async function processEmlxs(
   inputDir: string,
   outputDir: string,
@@ -99,43 +113,60 @@ export async function processEmlxs(
   skipDeleted?: boolean,
   progressReporter?: ProgressReporter,
   logger?: Logger
+): Promise<void>;
+
+// Implementation
+export async function processEmlxs(
+  inputDirOrOptions: string | ProcessEmlxsOptions,
+  outputDir?: string,
+  ignoreErrors?: boolean,
+  skipDeleted?: boolean,
+  progressReporter?: ProgressReporter,
+  logger?: Logger
 ): Promise<void> {
-  const { files } = await setupEnv(inputDir, progressReporter);
+  // Normalize arguments to object form
+  const options: ProcessEmlxsOptions =
+    typeof inputDirOrOptions === 'string'
+      ? { inputDir: inputDirOrOptions, outputDir: outputDir!, ignoreErrors, skipDeleted, progressReporter, logger }
+      : inputDirOrOptions;
+
+  const { inputDir, outputDir: outDir, ignoreErrors: ignoreErrs, skipDeleted: skipDel, progressReporter: progReporter, logger: log } = options;
+  const { files } = await setupEnv(inputDir, progReporter);
   for (let i = 0; i < files.length; i++) {
     // Check for cancellation
-    if (progressReporter?.isCancelled?.()) {
-      logger?.info?.('Conversion cancelled by user');
+    if (progReporter?.isCancelled?.()) {
+      log?.info?.('Conversion cancelled by user');
       break;
     }
 
     const file = files[i];
 
     // Report progress via API
-    progressReporter?.onProgress?.(i + 1, files.length, file);
+    progReporter?.onProgress?.(i + 1, files.length, file);
 
-    const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
+    const resultPath = path.join(outDir, `${stripExtension(path.basename(file))}.eml`);
     try {
       const writeStream = fs.createWriteStream(resultPath);
-      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors, skipDeleted, logger);
+      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrs, skipDel, log);
       res.messages.forEach(message => {
         const logMsg = `${file}: ${message}`;
-        logger?.warn?.(logMsg);
+        log?.warn?.(logMsg);
       });
     } catch (e) {
       if (e instanceof DeletedMessageError && e.message == 'DELETED') {
         const logMsg = `${file}: Message is marked as deleted (skipped)`;
-        logger?.info?.(logMsg);
+        log?.info?.(logMsg);
         await fs.promises.unlink(resultPath);
         continue;
       }
       const errorMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
-      logger?.error?.(errorMsg);
+      log?.error?.(errorMsg);
       throw e;
     }
   }
 
   // Notify completion
-  progressReporter?.onComplete?.();
+  progReporter?.onComplete?.();
 }
 
 export async function imapImport(
@@ -520,7 +551,13 @@ export function processCli(): void {
       };
 
       try {
-        await processEmlxs(inputDir, outputDir, options.ignoreErrors, options.skipDeleted, progressReporter);
+        await processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: options.ignoreErrors,
+          skipDeleted: options.skipDeleted,
+          progressReporter,
+        });
       } catch (err) {
         bar?.terminate();
         console.error(err);
