@@ -104,7 +104,7 @@ export async function processEmlxs(
   const { files, bar } = await setupEnv(inputDir, progressReporter);
   for (let i = 0; i < files.length; i++) {
     // Check for cancellation
-    if (progressReporter?.isCancelled && progressReporter.isCancelled()) {
+    if (progressReporter?.isCancelled?.()) {
       logger?.info?.('Conversion cancelled by user');
       break;
     }
@@ -129,7 +129,7 @@ export async function processEmlxs(
         const logMsg = `${file}: Message is marked as deleted (skipped)`;
         bar.interrupt(logMsg);
         logger?.info?.(logMsg);
-        fs.unlinkSync(resultPath);
+        await fs.promises.unlink(resultPath);
         continue;
       }
       const errorMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
@@ -174,7 +174,7 @@ export async function imapImport(
   try {
     for (let i = 0; i < files.length; i++) {
       // Check for cancellation
-      if (options.progressReporter?.isCancelled && options.progressReporter.isCancelled()) {
+      if (options.progressReporter?.isCancelled?.()) {
         options.logger?.info?.('Conversion cancelled by user');
         break;
       }
