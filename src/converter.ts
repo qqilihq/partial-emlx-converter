@@ -88,9 +88,7 @@ async function setupEnv(inputDir: string, progressReporter?: ProgressReporter) {
   const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
 
   // Notify progress reporter if provided
-  if (progressReporter?.onStart) {
-    progressReporter.onStart(files.length);
-  }
+  progressReporter?.onStart?.(files.length);
 
   return { files, bar };
 }
@@ -107,9 +105,7 @@ export async function processEmlxs(
   for (let i = 0; i < files.length; i++) {
     // Check for cancellation
     if (progressReporter?.isCancelled && progressReporter.isCancelled()) {
-      if (logger?.info) {
-        logger.info('Conversion cancelled by user');
-      }
+      logger?.info?.('Conversion cancelled by user');
       break;
     }
 
@@ -117,9 +113,7 @@ export async function processEmlxs(
     bar.tick({ file });
 
     // Report progress via API
-    if (progressReporter?.onProgress) {
-      progressReporter.onProgress(i + 1, files.length, file);
-    }
+    progressReporter?.onProgress?.(i + 1, files.length, file);
 
     const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
     try {
@@ -128,34 +122,26 @@ export async function processEmlxs(
       res.messages.forEach(message => {
         const logMsg = `${file}: ${message}`;
         bar.interrupt(logMsg);
-        if (logger?.warn) {
-          logger.warn(logMsg);
-        }
+        logger?.warn?.(logMsg);
       });
     } catch (e) {
       if (e instanceof DeletedMessageError && e.message == 'DELETED') {
         const logMsg = `${file}: Message is marked as deleted (skipped)`;
         bar.interrupt(logMsg);
-        if (logger?.info) {
-          logger.info(logMsg);
-        }
+        logger?.info?.(logMsg);
         fs.unlinkSync(resultPath);
         continue;
       }
       const errorMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
       bar.interrupt(errorMsg);
-      if (logger?.error) {
-        logger.error(errorMsg);
-      }
+      logger?.error?.(errorMsg);
       bar.terminate();
       throw e;
     }
   }
 
   // Notify completion
-  if (progressReporter?.onComplete) {
-    progressReporter.onComplete();
-  }
+  progressReporter?.onComplete?.();
 }
 
 export async function imapImport(
@@ -189,9 +175,7 @@ export async function imapImport(
     for (let i = 0; i < files.length; i++) {
       // Check for cancellation
       if (options.progressReporter?.isCancelled && options.progressReporter.isCancelled()) {
-        if (options.logger?.info) {
-          options.logger.info('Conversion cancelled by user');
-        }
+        options.logger?.info?.('Conversion cancelled by user');
         break;
       }
 
@@ -199,9 +183,7 @@ export async function imapImport(
       bar.tick({ file });
 
       // Report progress via API
-      if (options.progressReporter?.onProgress) {
-        options.progressReporter.onProgress(i + 1, files.length, file);
-      }
+      options.progressReporter?.onProgress?.(i + 1, files.length, file);
 
       try {
         let writeStream: stream.Writable;
@@ -229,9 +211,7 @@ export async function imapImport(
         res.messages.forEach(message => {
           const logMsg = `${file}: ${message}`;
           bar.interrupt(logMsg);
-          if (options.logger?.warn) {
-            options.logger.warn(logMsg);
-          }
+          options.logger?.warn?.(logMsg);
         });
         const msgData = await writeStreamCollector;
         const dateRecvTS = res.plData['date-received'] as number | undefined;
@@ -258,23 +238,17 @@ export async function imapImport(
         if (e instanceof DeletedMessageError && e.message == 'DELETED') {
           const logMsg = `${file}: Message is marked as deleted (skipped)`;
           bar.interrupt(logMsg);
-          if (options.logger?.info) {
-            options.logger.info(logMsg);
-          }
+          options.logger?.info?.(logMsg);
           continue;
         }
         if (e instanceof Error) {
           const errorMsg = `Caught Error: ${e.message}`;
           bar.interrupt(errorMsg);
-          if (options.logger?.error) {
-            options.logger.error(errorMsg);
-          }
+          options.logger?.error?.(errorMsg);
           if (e.message.startsWith('Could not get attachment')) {
             const warnMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
             bar.interrupt(warnMsg);
-            if (options.logger?.warn) {
-              options.logger.warn(warnMsg);
-            }
+            options.logger?.warn?.(warnMsg);
           }
         }
         bar.terminate();
@@ -283,9 +257,7 @@ export async function imapImport(
     }
 
     // Notify completion
-    if (options.progressReporter?.onComplete) {
-      options.progressReporter.onComplete();
-    }
+    options.progressReporter?.onComplete?.();
   } finally {
     await conn.logout();
   }
@@ -332,14 +304,10 @@ export async function processEmlx(
         if (ignoreErrors) {
           // just store in `messages`
           messages.push(err.message);
-          if (logger?.warn) {
-            logger.warn(`${emlxFile}: ${err.message}`);
-          }
+          logger?.warn?.(`${emlxFile}: ${err.message}`);
         } else {
           // emit (and then throw)
-          if (logger?.error) {
-            logger.error(`${emlxFile}: ${err.message}`);
-          }
+          logger?.error?.(`${emlxFile}: ${err.message}`);
           rewriter.emit('error', err);
         }
       });
@@ -395,9 +363,7 @@ async function integrateAttachment(emlxFile: string, data: any, logger?: Logger)
     if (fileNames.length > 0) {
       message += ` (tried ${fileNames.join(', ')})`;
     }
-    if (logger?.error) {
-      logger.error(`${emlxFile}: ${message}`);
-    }
+    logger?.error?.(`${emlxFile}: ${message}`);
     throw new Error(message);
   }
 }
