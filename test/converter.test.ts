@@ -310,11 +310,11 @@ describe('converter', () => {
           outputDir,
           ignoreErrors: true,
           progressReporter: {
-            onStart: (total) => {
+            onStart: total => {
               startCalled = true;
               totalFiles = total;
-            },
-          },
+            }
+          }
         });
 
         expect(startCalled).to.be(true);
@@ -342,8 +342,8 @@ describe('converter', () => {
           progressReporter: {
             onProgress: (current, total, fileName) => {
               progressCalls.push({ current, total, fileName });
-            },
-          },
+            }
+          }
         });
 
         expect(progressCalls.length).to.be.greaterThan(0);
@@ -377,8 +377,8 @@ describe('converter', () => {
           progressReporter: {
             onComplete: () => {
               completeCalled = true;
-            },
-          },
+            }
+          }
         });
 
         expect(completeCalled).to.be(true);
@@ -408,8 +408,8 @@ describe('converter', () => {
             isCancelled: () => {
               // Cancel after processing first file
               return processedFiles >= 1;
-            },
-          },
+            }
+          }
         });
 
         // Should have stopped after 1 file
@@ -437,19 +437,25 @@ describe('converter', () => {
           outputDir,
           ignoreErrors: true,
           logger: {
-            info: () => {},
-            warn: (message) => {
+            info: () => {
+              // no-op
+            },
+            warn: message => {
               warnMessages.push(message);
             },
-            error: () => {},
-            debug: () => {},
-          },
+            error: () => {
+              // no-op
+            },
+            debug: () => {
+              // no-op
+            }
+          }
         });
 
         // Test file 114893.partial.emlx has missing attachments
         // Should have warnings about missing files
         expect(warnMessages.length).to.be.greaterThan(0);
-        const attachmentWarnings = warnMessages.filter((msg) => msg.includes('Could not get attachment file'));
+        const attachmentWarnings = warnMessages.filter(msg => msg.includes('Could not get attachment file'));
         expect(attachmentWarnings.length).to.be.greaterThan(0);
       } finally {
         // Clean up
@@ -473,13 +479,19 @@ describe('converter', () => {
           ignoreErrors: true,
           skipDeleted: true,
           logger: {
-            info: () => {},
-            warn: (message) => {
+            info: () => {
+              // no-op
+            },
+            warn: message => {
               warnMessages.push(message);
             },
-            error: () => {},
-            debug: () => {},
-          },
+            error: () => {
+              // no-op
+            },
+            debug: () => {
+              // no-op
+            }
+          }
         });
 
         // If there are any deleted files in test data, we should see warnings
@@ -506,19 +518,25 @@ describe('converter', () => {
           outputDir,
           ignoreErrors: true,
           logger: {
-            info: () => {},
-            warn: () => {},
-            error: (message) => {
+            info: () => {
+              // no-op
+            },
+            warn: () => {
+              // no-op
+            },
+            error: message => {
               errorMessages.push(message);
             },
-            debug: () => {},
-          },
+            debug: () => {
+              // no-op
+            }
+          }
         });
 
         // Test file 114893.partial.emlx has missing attachments
         // Should have at least one error logged
         expect(errorMessages.length).to.be.greaterThan(0);
-        const attachmentErrors = errorMessages.filter((msg) => msg.includes('Could not get attachment file'));
+        const attachmentErrors = errorMessages.filter(msg => msg.includes('Could not get attachment file'));
         expect(attachmentErrors.length).to.be.greaterThan(0);
       } finally {
         // Clean up
@@ -548,16 +566,22 @@ describe('converter', () => {
             },
             onComplete: () => {
               completeCalled = true;
-            },
+            }
           },
           logger: {
-            info: () => {},
-            warn: (message) => {
+            info: () => {
+              // no-op
+            },
+            warn: message => {
               warnMessages.push(message);
             },
-            error: () => {},
-            debug: () => {},
-          },
+            error: () => {
+              // no-op
+            },
+            debug: () => {
+              // no-op
+            }
+          }
         });
 
         expect(startCalled).to.be(true);
@@ -593,7 +617,7 @@ async function streamToBuffer(readable: Readable): Promise<Buffer> {
 
 function removeDirectoryRecursive(dirPath: string): void {
   if (fs.existsSync(dirPath)) {
-    fs.readdirSync(dirPath).forEach((file) => {
+    fs.readdirSync(dirPath).forEach(file => {
       const curPath = path.join(dirPath, file);
       if (fs.lstatSync(curPath).isDirectory()) {
         removeDirectoryRecursive(curPath);
