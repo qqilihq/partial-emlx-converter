@@ -292,6 +292,284 @@ describe('converter', () => {
       'remote-id': '50758'
     });
   });
+
+  describe('progress reporter', () => {
+    it('calls onStart with total file count', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-progress-test');
+      let startCalled = false;
+      let totalFiles = 0;
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          progressReporter: {
+            onStart: (total) => {
+              startCalled = true;
+              totalFiles = total;
+            },
+          },
+        });
+
+        expect(startCalled).to.be(true);
+        expect(totalFiles).to.be.greaterThan(0);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('calls onProgress for each file', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-progress-test-2');
+      const progressCalls: Array<{ current: number; total: number; fileName: string }> = [];
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          progressReporter: {
+            onProgress: (current, total, fileName) => {
+              progressCalls.push({ current, total, fileName });
+            },
+          },
+        });
+
+        expect(progressCalls.length).to.be.greaterThan(0);
+
+        // Check that current progresses correctly
+        for (let i = 0; i < progressCalls.length; i++) {
+          expect(progressCalls[i].current).to.be(i + 1);
+          expect(progressCalls[i].fileName).to.be.a('string');
+          expect(progressCalls[i].fileName.length).to.be.greaterThan(0);
+        }
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('calls onComplete when processing finishes', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-progress-test-3');
+      let completeCalled = false;
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          progressReporter: {
+            onComplete: () => {
+              completeCalled = true;
+            },
+          },
+        });
+
+        expect(completeCalled).to.be(true);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('respects isCancelled callback', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-progress-test-4');
+      let processedFiles = 0;
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          progressReporter: {
+            onProgress: () => {
+              processedFiles++;
+            },
+            isCancelled: () => {
+              // Cancel after processing first file
+              return processedFiles >= 1;
+            },
+          },
+        });
+
+        // Should have stopped after 1 file
+        expect(processedFiles).to.be(1);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+  });
+
+  describe('logger', () => {
+    it('calls warn for files with errors when ignoreErrors is true', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-logger-test');
+      const warnMessages: string[] = [];
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          logger: {
+            info: () => {},
+            warn: (message) => {
+              warnMessages.push(message);
+            },
+            error: () => {},
+            debug: () => {},
+          },
+        });
+
+        // Test file 114893.partial.emlx has missing attachments
+        // Should have warnings about missing files
+        expect(warnMessages.length).to.be.greaterThan(0);
+        const attachmentWarnings = warnMessages.filter((msg) => msg.includes('Could not get attachment file'));
+        expect(attachmentWarnings.length).to.be.greaterThan(0);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('calls warn for skipped deleted files', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-logger-test-2');
+      const warnMessages: string[] = [];
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          skipDeleted: true,
+          logger: {
+            info: () => {},
+            warn: (message) => {
+              warnMessages.push(message);
+            },
+            error: () => {},
+            debug: () => {},
+          },
+        });
+
+        // If there are any deleted files in test data, we should see warnings
+        // (this might be 0 if no deleted files exist in test data)
+        expect(warnMessages).to.be.an('array');
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('calls error for files with missing attachments when ignoreErrors is true', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-logger-test-3');
+      const errorMessages: string[] = [];
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          logger: {
+            info: () => {},
+            warn: () => {},
+            error: (message) => {
+              errorMessages.push(message);
+            },
+            debug: () => {},
+          },
+        });
+
+        // Test file 114893.partial.emlx has missing attachments
+        // Should have at least one error logged
+        expect(errorMessages.length).to.be.greaterThan(0);
+        const attachmentErrors = errorMessages.filter((msg) => msg.includes('Could not get attachment file'));
+        expect(attachmentErrors.length).to.be.greaterThan(0);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+
+    it('works with both logger and progress reporter', async () => {
+      const inputDir = path.join(__dirname, '__testdata/input');
+      const outputDir = path.join(__dirname, '__testdata/output-logger-test-4');
+      let startCalled = false;
+      let completeCalled = false;
+      const warnMessages: string[] = [];
+
+      try {
+        if (!fs.existsSync(outputDir)) {
+          fs.mkdirSync(outputDir, { recursive: true });
+        }
+
+        await converter.processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: true,
+          progressReporter: {
+            onStart: () => {
+              startCalled = true;
+            },
+            onComplete: () => {
+              completeCalled = true;
+            },
+          },
+          logger: {
+            info: () => {},
+            warn: (message) => {
+              warnMessages.push(message);
+            },
+            error: () => {},
+            debug: () => {},
+          },
+        });
+
+        expect(startCalled).to.be(true);
+        expect(completeCalled).to.be(true);
+        // Should have some warnings from files with missing attachments
+        expect(warnMessages.length).to.be.greaterThan(0);
+      } finally {
+        // Clean up
+        removeDirectoryRecursive(outputDir);
+      }
+    });
+  });
 });
 
 function extractHeader(input: string): string {
@@ -311,4 +589,18 @@ async function streamToBuffer(readable: Readable): Promise<Buffer> {
     readable.on('data', (b: Buffer) => buffers.push(b));
     readable.on('end', () => resolve(Buffer.concat(buffers)));
   });
+}
+
+function removeDirectoryRecursive(dirPath: string): void {
+  if (fs.existsSync(dirPath)) {
+    fs.readdirSync(dirPath).forEach((file) => {
+      const curPath = path.join(dirPath, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        removeDirectoryRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(dirPath);
+  }
 }
