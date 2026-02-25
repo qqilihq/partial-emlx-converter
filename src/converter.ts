@@ -130,7 +130,14 @@ export async function processEmlxs(
       ? { inputDir: inputDirOrOptions, outputDir: outputDir!, ignoreErrors, skipDeleted, progressReporter, logger }
       : inputDirOrOptions;
 
-  const { inputDir, outputDir: outDir, ignoreErrors: ignoreErrs, skipDeleted: skipDel, progressReporter: progReporter, logger: log } = options;
+  const {
+    inputDir,
+    outputDir: outDir,
+    ignoreErrors: ignoreErrs,
+    skipDeleted: skipDel,
+    progressReporter: progReporter,
+    logger: log
+  } = options;
   const { files } = await setupEnv(inputDir, progReporter);
   for (let i = 0; i < files.length; i++) {
     // Check for cancellation
@@ -542,12 +549,12 @@ export function processCli(): void {
       // Create progress bar for CLI
       let bar!: ProgressBar;
       const progressReporter: ProgressReporter = {
-        onStart: (total) => {
+        onStart: total => {
           bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total, width: 40 });
         },
         onProgress: (_current, _total, fileName) => {
           bar?.tick({ file: fileName });
-        },
+        }
       };
 
       try {
@@ -556,7 +563,7 @@ export function processCli(): void {
           outputDir,
           ignoreErrors: options.ignoreErrors,
           skipDeleted: options.skipDeleted,
-          progressReporter,
+          progressReporter
         });
       } catch (err) {
         bar?.terminate();
@@ -584,12 +591,12 @@ export function processCli(): void {
       // Create progress bar for CLI
       let bar!: ProgressBar;
       const progressReporter: ProgressReporter = {
-        onStart: (total) => {
+        onStart: total => {
           bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total, width: 40 });
         },
         onProgress: (_current, _total, fileName) => {
           bar?.tick({ file: fileName });
-        },
+        }
       };
 
       try {
