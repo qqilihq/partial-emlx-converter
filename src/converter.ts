@@ -156,18 +156,15 @@ export async function processEmlxs(
       const writeStream = fs.createWriteStream(resultPath);
       const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrs, skipDel, log);
       res.messages.forEach(message => {
-        const logMsg = `${file}: ${message}`;
-        log?.warn?.(logMsg);
+        log?.warn?.(`${file}: ${message}`);
       });
     } catch (e) {
       if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-        const logMsg = `${file}: Message is marked as deleted (skipped)`;
-        log?.info?.(logMsg);
+        log?.info?.(`${file}: Message is marked as deleted (skipped)`);
         await fs.promises.unlink(resultPath);
         continue;
       }
-      const errorMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
-      log?.error?.(errorMsg);
+      log?.error?.(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
       throw e;
     }
   }
@@ -240,8 +237,7 @@ export async function imapImport(
           options.logger
         );
         res.messages.forEach(message => {
-          const logMsg = `${file}: ${message}`;
-          options.logger?.warn?.(logMsg);
+          options.logger?.warn?.(`${file}: ${message}`);
         });
         const msgData = await writeStreamCollector;
         const dateRecvTS = res.plData['date-received'] as number | undefined;
@@ -266,16 +262,13 @@ export async function imapImport(
         await conn.append(options.mailbox, msgData, imapFlags, dateRecv);
       } catch (e) {
         if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-          const logMsg = `${file}: Message is marked as deleted (skipped)`;
-          options.logger?.info?.(logMsg);
+          options.logger?.info?.(`${file}: Message is marked as deleted (skipped)`);
           continue;
         }
         if (e instanceof Error) {
-          const errorMsg = `Caught Error: ${e.message}`;
-          options.logger?.error?.(errorMsg);
+          options.logger?.error?.(`Caught Error: ${e.message}`);
           if (e.message.startsWith('Could not get attachment')) {
-            const warnMsg = `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`;
-            options.logger?.warn?.(warnMsg);
+            options.logger?.warn?.(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
           }
         }
         throw e;
