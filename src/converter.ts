@@ -164,7 +164,9 @@ export async function processEmlxs(
         await fs.promises.unlink(resultPath);
         continue;
       }
-      log?.error?.(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
+      log?.error?.(
+        `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+      );
       throw e;
     }
   }
@@ -268,7 +270,9 @@ export async function imapImport(
         if (e instanceof Error) {
           options.logger?.error?.(`Caught Error: ${e.message}`);
           if (e.message.startsWith('Could not get attachment')) {
-            options.logger?.warn?.(`Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`);
+            options.logger?.warn?.(
+              `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
+            );
           }
         }
         throw e;
