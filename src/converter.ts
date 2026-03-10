@@ -175,6 +175,133 @@ export async function processEmlxs(
   progReporter?.onComplete?.();
 }
 
+/**
+ * Test IMAP connection and settings.
+ * Returns a promise that resolves with a success message or rejects with a user-friendly error.
+ */
+export async function testImapConnection(options: {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  mailbox: string;
+  tls: boolean;
+}): Promise<{ success: true; message: string }> {
+  let conn: ImapFlow | null = null;
+
+  try {
+    // Create connection
+    conn = new ImapFlow({
+      host: options.host,
+      port: options.port,
+      auth: {
+        user: options.user,
+        pass: options.pass
+      },
+      secure: options.tls,
+      logger: false
+    });
+
+    // Attempt to connect
+    try {
+      await conn.connect();
+    } catch (error) {
+      // Connection errors - distinguish between different types
+      if (error instanceof Error) {
+        const errMsg = error.message.toLowerCase();
+
+        // DNS/hostname errors
+        if (errMsg.includes('getaddrinfo') || errMsg.includes('enotfound')) {
+          throw new Error(
+            `Cannot resolve hostname "${options.host}". Please check the IMAP server address.`
+          );
+        }
+
+        // Connection refused (wrong port or server not running)
+        if (errMsg.includes('econnrefused')) {
+          throw new Error(
+            `Connection refused to ${options.host}:${options.port}. Please check the server address and port number.`
+          );
+        }
+
+        // Timeout errors
+        if (errMsg.includes('timeout') || errMsg.includes('etimedout')) {
+          throw new Error(
+            `Connection timeout to ${options.host}:${options.port}. The server may be unreachable or behind a firewall.`
+          );
+        }
+
+        // TLS/SSL errors
+        if (errMsg.includes('tls') || errMsg.includes('ssl') || errMsg.includes('certificate')) {
+          throw new Error(
+            `TLS/SSL error connecting to ${options.host}. Try ${options.tls ? 'disabling' : 'enabling'} TLS.`
+          );
+        }
+
+        // Authentication errors
+        if (
+          errMsg.includes('authentication') ||
+          errMsg.includes('login') ||
+          errMsg.includes('authenticationfailed')
+        ) {
+          throw new Error(`Authentication failed. Please check your username and password.`);
+        }
+
+        // Generic connection error
+        throw new Error(`Connection failed: ${error.message}`);
+      }
+      throw error;
+    }
+
+    // Test mailbox access
+    try {
+      await conn.mailboxOpen(options.mailbox);
+    } catch (error) {
+      if (error instanceof Error) {
+        const errMsg = error.message.toLowerCase();
+
+        // Mailbox doesn't exist
+        if (errMsg.includes('nonexistent') || errMsg.includes('does not exist') || errMsg.includes('trycreate')) {
+          throw new Error(
+            `Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`
+          );
+        }
+
+        // Permission denied
+        if (errMsg.includes('permission') || errMsg.includes('access denied')) {
+          throw new Error(
+            `Access denied to mailbox "${options.mailbox}". Please check your permissions.`
+          );
+        }
+
+        // Generic mailbox error
+        throw new Error(`Cannot access mailbox "${options.mailbox}": ${error.message}`);
+      }
+      throw error;
+    }
+
+    // Success - close connection
+    await conn.logout();
+
+    return {
+      success: true,
+      message: `Successfully connected to ${options.host} and accessed mailbox "${options.mailbox}".`
+    };
+  } catch (error) {
+    // Make sure to close connection on error
+    if (conn) {
+      try {
+        await conn.logout();
+      } catch {
+        // Ignore logout errors
+      }
+    }
+
+    // Re-throw the error
+    throw error;
+  }
+}
+
 export async function imapImport(
   inputDir: string,
   options: {
