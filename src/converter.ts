@@ -212,9 +212,7 @@ export async function testImapConnection(options: {
 
         // DNS/hostname errors
         if (errMsg.includes('getaddrinfo') || errMsg.includes('enotfound')) {
-          throw new Error(
-            `Cannot resolve hostname "${options.host}". Please check the IMAP server address.`
-          );
+          throw new Error(`Cannot resolve hostname "${options.host}". Please check the IMAP server address.`);
         }
 
         // Connection refused (wrong port or server not running)
@@ -239,11 +237,7 @@ export async function testImapConnection(options: {
         }
 
         // Authentication errors
-        if (
-          errMsg.includes('authentication') ||
-          errMsg.includes('login') ||
-          errMsg.includes('authenticationfailed')
-        ) {
+        if (errMsg.includes('authentication') || errMsg.includes('login') || errMsg.includes('authenticationfailed')) {
           throw new Error(`Authentication failed. Please check your username and password.`);
         }
 
@@ -262,16 +256,12 @@ export async function testImapConnection(options: {
 
         // Mailbox doesn't exist
         if (errMsg.includes('nonexistent') || errMsg.includes('does not exist') || errMsg.includes('trycreate')) {
-          throw new Error(
-            `Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`
-          );
+          throw new Error(`Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`);
         }
 
         // Permission denied
         if (errMsg.includes('permission') || errMsg.includes('access denied')) {
-          throw new Error(
-            `Access denied to mailbox "${options.mailbox}". Please check your permissions.`
-          );
+          throw new Error(`Access denied to mailbox "${options.mailbox}". Please check your permissions.`);
         }
 
         // Generic mailbox error
