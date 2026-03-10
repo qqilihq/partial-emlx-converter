@@ -294,15 +294,19 @@ describe('converter', () => {
   });
 
   describe('progress reporter', () => {
+    const inputDir = path.join(__dirname, '__testdata/input');
+    const outputDirs: string[] = [];
+
+    afterEach(() => {
+      outputDirs.forEach(dir => removeDirectoryRecursive(dir));
+      outputDirs.length = 0;
+    });
+
     it('calls onStart with total file count', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-progress-test');
+      outputDirs.push(outputDir);
       let startCalled = false;
       let totalFiles = 0;
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -325,13 +329,9 @@ describe('converter', () => {
     });
 
     it('calls onProgress for each file', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-progress-test-2');
+      outputDirs.push(outputDir);
       const progressCalls: Array<{ current: number; total: number; fileName: string }> = [];
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -359,13 +359,9 @@ describe('converter', () => {
     });
 
     it('calls onComplete when processing finishes', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-progress-test-3');
+      outputDirs.push(outputDir);
       let completeCalled = false;
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -386,13 +382,9 @@ describe('converter', () => {
     });
 
     it('respects isCancelled callback', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-progress-test-4');
+      outputDirs.push(outputDir);
       let processedFiles = 0;
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -418,14 +410,18 @@ describe('converter', () => {
   });
 
   describe('logger', () => {
-    it('calls warn for files with errors when ignoreErrors is true', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
-      const outputDir = path.join(__dirname, '__testdata/output-logger-test');
-      const warnMessages: string[] = [];
+    const inputDir = path.join(__dirname, '__testdata/input');
+    const outputDirs: string[] = [];
 
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
+    afterEach(() => {
+      outputDirs.forEach(dir => removeDirectoryRecursive(dir));
+      outputDirs.length = 0;
+    });
+
+    it('calls warn for files with errors when ignoreErrors is true', async () => {
+      const outputDir = path.join(__dirname, '__testdata/output-logger-test');
+      outputDirs.push(outputDir);
+      const warnMessages: string[] = [];
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -459,13 +455,9 @@ describe('converter', () => {
     });
 
     it('calls warn for skipped deleted files', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-logger-test-2');
+      outputDirs.push(outputDir);
       const warnMessages: string[] = [];
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -498,13 +490,9 @@ describe('converter', () => {
     });
 
     it('calls error for files with missing attachments when ignoreErrors is true', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-logger-test-3');
+      outputDirs.push(outputDir);
       const errorMessages: string[] = [];
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
@@ -538,15 +526,11 @@ describe('converter', () => {
     });
 
     it('works with both logger and progress reporter', async () => {
-      const inputDir = path.join(__dirname, '__testdata/input');
       const outputDir = path.join(__dirname, '__testdata/output-logger-test-4');
+      outputDirs.push(outputDir);
       let startCalled = false;
       let completeCalled = false;
       const warnMessages: string[] = [];
-
-      after(() => {
-        removeDirectoryRecursive(outputDir);
-      });
 
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
