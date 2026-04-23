@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as glob from 'glob';
+import { glob } from 'glob';
 import * as stream from 'stream';
 import * as path from 'path';
 import * as ProgressBar from 'progress';
@@ -23,7 +23,7 @@ class DeletedMessageError extends Error {
 }
 
 async function setupEnv(inputDir: string) {
-  const files = await util.promisify(glob)('**/*.emlx', { cwd: inputDir });
+  const files = await glob('**/*.emlx', { cwd: inputDir });
   const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
   return { files, bar };
 }
