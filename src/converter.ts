@@ -303,7 +303,7 @@ export const EmlxFlagNames = [
   'notJunk'
 ] as const;
 
-export type EmlxFlags = typeof EmlxFlagNames[number];
+export type EmlxFlags = (typeof EmlxFlagNames)[number];
 
 // emlx file contain the length of the 'payload' in the first line;
 // this allows to strip away the plist epilogue at the end of the
