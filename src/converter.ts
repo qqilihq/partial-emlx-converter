@@ -103,7 +103,6 @@ export async function imapImport(
         });
         const res = await processEmlx(
           path.join(inputDir, file),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           writeStream!,
           options.ignoreErrors,
           options.skipDeleted
@@ -231,13 +230,13 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     try {
       await new Promise<void>((resolve, reject) => {
         const stream = fs.createReadStream(filePath);
-        stream.on('error', error => reject(error));
+        stream.on('error', (error: Error) => reject(error));
         stream.on('close', () => resolve());
         stream.pipe(data.encoder);
       });
       processedAttachment = true;
       break;
-    } catch (e) {
+    } catch {
       // ignore here, keep trying
     }
   }
@@ -278,7 +277,7 @@ async function getFilenameFromFileSystem(pathToDirectory: string): Promise<strin
     } else {
       return files[0];
     }
-  } catch (e) {
+  } catch {
     debug(`Couldn’t read attachments in '${pathToDirectory}'`);
     return null;
   }

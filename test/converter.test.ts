@@ -1,11 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const expect = require('expect.js');
 import 'mocha';
 import * as path from 'path';
 import * as converter from '../src/converter';
 import * as fs from 'fs';
 import * as os from 'os';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const MemoryStream = require('memorystream');
 import { Readable } from 'stream';
 
@@ -136,7 +136,7 @@ describe('converter', () => {
         expect(messages).to.contain('Could not get attachment file (tried image001.png)');
         const buffer = await streamToBuffer(stream);
         writeForDebugging(buffer, '114863.eml');
-      } catch (e) {
+      } catch {
         expect().fail();
       }
     });
