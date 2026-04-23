@@ -1,17 +1,17 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import { glob } from 'glob';
-import * as stream from 'stream';
-import * as path from 'path';
-import * as ProgressBar from 'progress';
-import * as util from 'util';
-import * as commander from 'commander';
-import * as plist from 'plist';
-import * as imap from 'imapflow';
+import stream from 'stream';
+import path from 'path';
+import ProgressBar from 'progress';
+import util from 'util';
+import { Command, Option } from 'commander';
+import { parse as parsePlist, PlistObject } from 'plist';
+import { ImapFlow } from 'imapflow';
 
 // @ts-ignore
 import { Splitter, Joiner, Rewriter } from 'mailsplit';
 import { Transform, TransformCallback, pipeline, Writable } from 'stream';
-import * as Debug from 'debug';
+import Debug from 'debug';
 
 const debug = Debug('converter');
 
@@ -70,7 +70,7 @@ export async function imapImport(
     mailbox: string;
   }
 ): Promise<void> {
-  const conn = new imap.ImapFlow({
+  const conn = new ImapFlow({
     host: options.host,
     port: options.port,
     auth: {
@@ -169,7 +169,7 @@ export async function processEmlx(
   resultStream: Writable,
   ignoreErrors = false,
   skipDeleted = false
-): Promise<{ messages: string[]; flags: EmlxFlags[]; plData: plist.PlistObject }> {
+): Promise<{ messages: string[]; flags: EmlxFlags[]; plData: PlistObject }> {
   const messages: string[] = [];
   // see here for a an example how to implement the Rewriter:
   // https://github.com/andris9/mailsplit/blob/master/examples/rewrite-html.js
@@ -314,7 +314,7 @@ export class SkipEmlxTransform extends Transform {
   private skipDeleted: boolean;
   private plistChunks: Buffer[] = [];
   public readonly flags: EmlxFlags[] = [];
-  public plData: plist.PlistObject = {};
+  public plData: PlistObject = {};
 
   constructor(skipDeleted = false) {
     super();
@@ -360,7 +360,7 @@ export class SkipEmlxTransform extends Transform {
     // we parse & process the trailing plist data from the emlx file
     const plistDict = Buffer.concat(this.plistChunks).toString('utf8');
     try {
-      this.plData = plist.parse(plistDict) as plist.PlistObject;
+      this.plData = parsePlist(plistDict) as PlistObject;
 
       // the flags are documented here: https://docs.fileformat.com/email/emlx/
       const flagsVal = this.plData['flags'] as number;
@@ -391,7 +391,7 @@ export class SkipEmlxTransform extends Transform {
 }
 
 export function processCli(): void {
-  const program = new commander.Command();
+  const program = new Command();
   program.name('partial-emlx-converter').description('Read .emlx files and convert them to .eml files');
 
   program
@@ -411,16 +411,12 @@ export function processCli(): void {
     .option('-p,--port <port_number>', 'IMAP port', parseInt, 993)
     .requiredOption('-u,--user <username>', 'User for IMAP authentication')
     .addOption(
-      new commander.Option('--pass <password>', 'Password for IMAP authentication')
-        .makeOptionMandatory(true)
-        .env('IMAP_PASS')
+      new Option('--pass <password>', 'Password for IMAP authentication').makeOptionMandatory(true).env('IMAP_PASS')
     )
     .requiredOption('-h,--host <hostname>', 'IMAP server hostname')
     .requiredOption('-m,--mailbox <mailbox>', 'IMAP mailbox to import mails into', 'import')
     .addOption(
-      new commander.Option('--tls <mode>', 'Use `no` to disable TLS')
-        .choices(['yes', 'no'])
-        .default('yes', 'tls enabled')
+      new Option('--tls <mode>', 'Use `no` to disable TLS').choices(['yes', 'no']).default('yes', 'tls enabled')
     )
     .option('--skipDeleted', 'Skip messages marked as deleted')
     .option('--ignoreErrors', "Don't abort conversion on error (see the log output for details in this case)")
