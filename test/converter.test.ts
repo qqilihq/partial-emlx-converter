@@ -1,12 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const expect = require('expect.js');
+import expect from 'expect.js';
 import 'mocha';
-import * as path from 'path';
-import * as converter from '../src/converter';
-import * as fs from 'fs';
-import * as os from 'os';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const MemoryStream = require('memorystream');
+import path from 'path';
+import { processEmlx, SkipEmlxTransform } from '../src/converter';
+import fs from 'fs';
+import os from 'os';
+import MemoryStream from 'memorystream';
 import { Readable } from 'stream';
 
 /** enable to write results to home dir. */
@@ -19,7 +17,7 @@ describe('converter', () => {
 
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'), stream);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'), stream);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114892.eml'), 'utf-8');
@@ -74,7 +72,7 @@ describe('converter', () => {
 
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'), stream);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/114862.emlx'), stream);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       expectedResult = fs.readFileSync(path.join(__dirname, '__testdata/expected_results/114862.eml'), 'utf-8');
@@ -95,7 +93,7 @@ describe('converter', () => {
     let result: string;
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'), stream);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/465622.partial.emlx'), stream);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       writeForDebugging(buffer, '465622.emlx');
@@ -110,7 +108,7 @@ describe('converter', () => {
     // https://github.com/qqilihq/partial-emlx-converter/issues/3
     it('fails per default', async () => {
       try {
-        await converter.processEmlx(
+        await processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
           new MemoryStream(),
           false
@@ -124,7 +122,7 @@ describe('converter', () => {
     it('does not fail when flag is set', async () => {
       try {
         const stream = new MemoryStream();
-        const { messages } = await converter.processEmlx(
+        const { messages } = await processEmlx(
           path.join(__dirname, '__testdata/input/Messages/114893.partial.emlx'),
           stream,
           true
@@ -136,7 +134,7 @@ describe('converter', () => {
         expect(messages).to.contain('Could not get attachment file (tried image001.png)');
         const buffer = await streamToBuffer(stream);
         writeForDebugging(buffer, '114863.eml');
-      } catch (e) {
+      } catch {
         expect().fail();
       }
     });
@@ -147,7 +145,7 @@ describe('converter', () => {
 
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'), stream);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/114894.partial.emlx'), stream);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       writeForDebugging(buffer, '114894.eml');
@@ -168,7 +166,7 @@ describe('converter', () => {
 
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), stream, true);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/114895.partial.emlx'), stream, true);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       writeForDebugging(buffer, '114895.eml');
@@ -184,7 +182,7 @@ describe('converter', () => {
 
     before(async () => {
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/229417.partial.emlx'), stream);
       const buffer = await streamToBuffer(stream);
       result = buffer.toString('utf8');
       writeForDebugging(buffer, '229417.eml');
@@ -202,7 +200,7 @@ describe('converter', () => {
       // but since switching to `mailsplit`,
       // this is handled gracefully
       const stream = new MemoryStream();
-      await converter.processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), stream, false);
+      await processEmlx(path.join(__dirname, '__testdata/input/Messages/11507.emlx'), stream, false);
       const buffer = await streamToBuffer(stream);
       const result = buffer.toString('utf8');
       writeForDebugging(buffer, '11507.eml');
@@ -216,14 +214,14 @@ describe('converter', () => {
     // https://stackoverflow.com/questions/19906488/convert-stream-into-buffer
     it('small file', async () => {
       const fileStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-small.txt'));
-      const resultStream = fileStream.pipe(new converter.SkipEmlxTransform());
+      const resultStream = fileStream.pipe(new SkipEmlxTransform());
       const buffer = await streamToBuffer(resultStream);
       expect(buffer.toString('utf8')).to.eql('la\nle\nli');
     });
 
     it('large file', async () => {
       const readStream = fs.createReadStream(path.join(__dirname, '__testdata/skip-emlx/test-large.txt'));
-      const resultStream = readStream.pipe(new converter.SkipEmlxTransform());
+      const resultStream = readStream.pipe(new SkipEmlxTransform());
       const buffer = await streamToBuffer(resultStream);
       const result = buffer.toString('utf8');
       expect(result).to.match(/^ab.*/);
@@ -234,7 +232,7 @@ describe('converter', () => {
 
   it('throws error on invalid structure', async () => {
     try {
-      await converter.processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
+      await processEmlx(path.join(__dirname, '__testdata/skip-emlx/invalid.emlx'), new MemoryStream());
     } catch (e) {
       expect((e as Error).message).to.contain('Invalid structure; content did not start with payload length');
     }
@@ -252,7 +250,7 @@ describe('converter', () => {
         this.skip();
       } else {
         const stream = new MemoryStream();
-        await converter.processEmlx(testFile, stream);
+        await processEmlx(testFile, stream);
         const buffer = await streamToBuffer(stream);
         // nb: deliberately use 'binary' and not 'utf8' here
         // https://stackoverflow.com/a/40775633/388827
@@ -276,7 +274,7 @@ describe('converter', () => {
   });
 
   it('parses additional flags', async () => {
-    const result = await converter.processEmlx(
+    const result = await processEmlx(
       path.join(__dirname, '__testdata/input/Messages/114892.partial.emlx'),
       new MemoryStream()
     );

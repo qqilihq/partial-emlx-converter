@@ -1,0 +1,16 @@
+{
+  "all": true,
+  "src": "src",
+  "exclude": [
+    "**/*.d.ts",
+    "test/**",
+    "coverage/**",
+    "dist/**",
+    ".mocharc.js"
+  ],
+  "reporter": [
+    "html",
+    "text",
+    "json"
+  ]
+}
