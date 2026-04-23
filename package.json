@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test": "nyc mocha",
-    "lint": "eslint --ext .ts ./src ./test",
+    "lint": "eslint ./src ./test",
     "clean": "rimraf ./.nyc_output ./coverage ./dist",
     "preversion": "run-s clean lint test build",
     "postinstall": "patch-package"
@@ -44,6 +44,7 @@
     "progress": "^2.0.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/commander": "^2.12.5",
     "@types/debug": "^4.1.7",
     "@types/expect.js": "^0.3.29",
@@ -54,11 +55,11 @@
     "@types/node": "^10",
     "@types/plist": "^3.0.5",
     "@types/progress": "^2.0.5",
-    "@typescript-eslint/eslint-plugin": "^5.8.1",
-    "@typescript-eslint/parser": "^5.8.1",
-    "eslint": "^8.6.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "expect.js": "^0.3.1",
     "memorystream": "^0.3.1",
     "mocha": "^10.2.0",
@@ -68,7 +69,8 @@
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.4"
+    "typescript": "^4.5.4",
+    "typescript-eslint": "^8.59.0"
   },
   "engines": {
     "node": ">=10"
