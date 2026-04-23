@@ -212,37 +212,42 @@ export async function testImapConnection(options: {
 
         // DNS/hostname errors
         if (errMsg.includes('getaddrinfo') || errMsg.includes('enotfound')) {
-          throw new Error(`Cannot resolve hostname "${options.host}". Please check the IMAP server address.`);
+          throw new Error(`Cannot resolve hostname "${options.host}". Please check the IMAP server address.`, {
+            cause: error
+          });
         }
 
         // Connection refused (wrong port or server not running)
         if (errMsg.includes('econnrefused')) {
           throw new Error(
-            `Connection refused to ${options.host}:${options.port}. Please check the server address and port number.`
+            `Connection refused to ${options.host}:${options.port}. Please check the server address and port number.`,
+            { cause: error }
           );
         }
 
         // Timeout errors
         if (errMsg.includes('timeout') || errMsg.includes('etimedout')) {
           throw new Error(
-            `Connection timeout to ${options.host}:${options.port}. The server may be unreachable or behind a firewall.`
+            `Connection timeout to ${options.host}:${options.port}. The server may be unreachable or behind a firewall.`,
+            { cause: error }
           );
         }
 
         // TLS/SSL errors
         if (errMsg.includes('tls') || errMsg.includes('ssl') || errMsg.includes('certificate')) {
           throw new Error(
-            `TLS/SSL error connecting to ${options.host}. Try ${options.tls ? 'disabling' : 'enabling'} TLS.`
+            `TLS/SSL error connecting to ${options.host}. Try ${options.tls ? 'disabling' : 'enabling'} TLS.`,
+            { cause: error }
           );
         }
 
         // Authentication errors
         if (errMsg.includes('authentication') || errMsg.includes('login') || errMsg.includes('authenticationfailed')) {
-          throw new Error(`Authentication failed. Please check your username and password.`);
+          throw new Error(`Authentication failed. Please check your username and password.`, { cause: error });
         }
 
         // Generic connection error
-        throw new Error(`Connection failed: ${error.message}`);
+        throw new Error(`Connection failed: ${error.message}`, { cause: error });
       }
       throw error;
     }
@@ -256,16 +261,20 @@ export async function testImapConnection(options: {
 
         // Mailbox doesn't exist
         if (errMsg.includes('nonexistent') || errMsg.includes('does not exist') || errMsg.includes('trycreate')) {
-          throw new Error(`Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`);
+          throw new Error(`Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`, {
+            cause: error
+          });
         }
 
         // Permission denied
         if (errMsg.includes('permission') || errMsg.includes('access denied')) {
-          throw new Error(`Access denied to mailbox "${options.mailbox}". Please check your permissions.`);
+          throw new Error(`Access denied to mailbox "${options.mailbox}". Please check your permissions.`, {
+            cause: error
+          });
         }
 
         // Generic mailbox error
-        throw new Error(`Cannot access mailbox "${options.mailbox}": ${error.message}`);
+        throw new Error(`Cannot access mailbox "${options.mailbox}": ${error.message}`, { cause: error });
       }
       throw error;
     }
