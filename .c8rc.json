@@ -5,7 +5,8 @@
     "**/*.d.ts",
     "test/**",
     "coverage/**",
-    "dist/**"
+    "dist/**",
+    ".mocharc.js"
   ],
   "reporter": [
     "html",
