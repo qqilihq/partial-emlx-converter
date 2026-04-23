@@ -1,5 +1,5 @@
 module.exports = {
-  require: ['ts-node/register', 'source-map-support/register'],
+  require: ['tsx/cjs'],
   fullTrace: true,
   spec: 'test/**/*.test.ts'
 };

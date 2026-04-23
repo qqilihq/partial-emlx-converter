@@ -20,7 +20,7 @@ jobs:
           npm install -g yarn
           yarn install
           yarn lint
-          yarn run nyc --reporter=json ./node_modules/.bin/mocha -R mocha-junit-reporter --reporter-options mochaFile=./testresults.xml
+          yarn test
           yarn build
 
       - uses: codecov/codecov-action@v4.0.0

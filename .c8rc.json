@@ -1,0 +1,15 @@
+{
+  "all": true,
+  "src": "src",
+  "exclude": [
+    "**/*.d.ts",
+    "test/**",
+    "coverage/**",
+    "dist/**"
+  ],
+  "reporter": [
+    "html",
+    "text",
+    "json"
+  ]
+}

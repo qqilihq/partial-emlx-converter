@@ -1,17 +1,16 @@
 .github/
-.nyc_output/
 coverage/
 src/
 node_modules/
 test/
 
+.c8rc.json
 .editorconfig
 .eslintignore
 .eslintrc.js
 .gitignore
 .mocharc.js
 .ncurc.js
-.nycrc
 .prettierrc.js
 tsconfig.*
 yarn-error.log
