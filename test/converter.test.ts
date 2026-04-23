@@ -1,7 +1,7 @@
 import expect from 'expect.js';
 import 'mocha';
 import path from 'path';
-import { processEmlx, SkipEmlxTransform } from '../src/converter';
+import { processEmlx, processEmlxs, SkipEmlxTransform } from '../src/converter';
 import fs from 'fs';
 import os from 'os';
 import MemoryStream from 'memorystream';
@@ -312,7 +312,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -337,7 +337,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -367,7 +367,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -390,7 +390,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         progressReporter: {
@@ -427,7 +427,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -463,7 +463,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -498,7 +498,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
@@ -536,7 +536,7 @@ describe('converter', () => {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      await converter.processEmlxs({
+      await processEmlxs({
         inputDir,
         outputDir,
         ignoreErrors: true,
