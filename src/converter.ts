@@ -339,19 +339,19 @@ export class SkipEmlxTransform extends Transform {
       offset = 0;
       length = Math.min(this.bytesToRead - this.bytesRead, chunk.length);
     }
-    let slicedChunk = chunk.slice(offset, length);
+    let slicedChunk = chunk.subarray(offset, length);
     this.bytesRead += slicedChunk.length;
     if (this.bytesRead === this.bytesToRead) {
       // fix for #5 -- an end boundary string which is only terminated
       // with a single '-' is corrected to double '--' here
       const temp = slicedChunk.toString('utf8');
       if (temp.endsWith('-') && !temp.endsWith('--')) {
-        const nextChars = chunk.slice(length, length + 5).toString('utf8');
+        const nextChars = chunk.subarray(length, length + 5).toString('utf8');
         if (nextChars === '<?xml') {
           slicedChunk = Buffer.concat([slicedChunk, Buffer.from('-')]);
         }
       }
-      this.plistChunks.push(chunk.slice(length, chunk.length));
+      this.plistChunks.push(chunk.subarray(length, chunk.length));
     }
     callback(undefined, slicedChunk);
   }
