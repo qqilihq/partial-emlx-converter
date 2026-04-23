@@ -5,13 +5,7 @@ const eslintPluginPrettier = require('eslint-plugin-prettier');
 
 module.exports = tseslint.config(
   {
-    ignores: [
-      '.eslintrc.js',
-      'bin/**',
-      'dist/**',
-      'coverage/**',
-      'node_modules/**'
-    ]
+    ignores: ['bin/**', 'dist/**', 'coverage/**']
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -20,22 +14,16 @@ module.exports = tseslint.config(
     plugins: {
       prettier: eslintPluginPrettier
     },
-    rules: {
-      'prettier/prettier': 'error'
-    }
-  },
-  {
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'module',
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: __dirname,
-      },
+        tsconfigRootDir: __dirname
+      }
     },
     rules: {
-      'semi': ['error', 'always'],
-      '@typescript-eslint/ban-ts-ignore': 'off',
+      'prettier/prettier': 'error',
+      semi: ['error', 'always'],
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
       '@typescript-eslint/ban-ts-comment': 'off',
