@@ -30,5 +30,7 @@ jobs:
         with:
           files: ./coverage/coverage-final.json
           fail_ci_if_error: true
+          disable_search: true
+          disable_file_fixes: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
