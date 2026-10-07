@@ -22,38 +22,282 @@ class DeletedMessageError extends Error {
   }
 }
 
-async function setupEnv(inputDir: string) {
-  const files = await glob('**/*.emlx', { cwd: inputDir });
-  const bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total: files.length, width: 40 });
-  return { files, bar };
+/**
+ * Progress reporter interface for API integration.
+ * Provides progress updates during conversion.
+ */
+export interface ProgressReporter {
+  /**
+   * Called when starting to process files
+   * @param total Total number of files to process
+   */
+  onStart?(total: number): void;
+
+  /**
+   * Called for each file being processed
+   * @param current Current file number (1-based)
+   * @param total Total number of files
+   * @param fileName Name of the file being processed
+   */
+  onProgress?(current: number, total: number, fileName: string): void;
+
+  /**
+   * Called when all files are processed
+   */
+  onComplete?(): void;
+
+  /**
+   * Called to check if the conversion should be cancelled
+   * @returns true if the conversion should be cancelled, false otherwise
+   */
+  isCancelled?(): boolean;
 }
 
+/**
+ * Logger interface for API integration.
+ * Captures log messages and diagnostics.
+ */
+export interface Logger {
+  /**
+   * Log an informational message
+   * @param message The message to log
+   */
+  info?(message: string): void;
+
+  /**
+   * Log a warning message
+   * @param message The warning message
+   */
+  warn?(message: string): void;
+
+  /**
+   * Log an error message
+   * @param message The error message
+   */
+  error?(message: string): void;
+
+  /**
+   * Log a debug message
+   * @param message The debug message
+   */
+  debug?(message: string): void;
+}
+
+async function setupEnv(inputDir: string, progressReporter?: ProgressReporter) {
+  const files = await glob('**/*.emlx', { cwd: inputDir });
+
+  // Notify progress reporter if provided
+  progressReporter?.onStart?.(files.length);
+
+  return { files };
+}
+
+/**
+ * Options for processEmlxs function
+ */
+export interface ProcessEmlxsOptions {
+  inputDir: string;
+  outputDir: string;
+  ignoreErrors?: boolean;
+  skipDeleted?: boolean;
+  progressReporter?: ProgressReporter;
+  logger?: Logger;
+}
+
+// Overload signatures for backward compatibility
+export async function processEmlxs(options: ProcessEmlxsOptions): Promise<void>;
 export async function processEmlxs(
   inputDir: string,
   outputDir: string,
   ignoreErrors?: boolean,
-  skipDeleted?: boolean
+  skipDeleted?: boolean,
+  progressReporter?: ProgressReporter,
+  logger?: Logger
+): Promise<void>;
+
+// Implementation
+export async function processEmlxs(
+  inputDirOrOptions: string | ProcessEmlxsOptions,
+  outputDir?: string,
+  ignoreErrors?: boolean,
+  skipDeleted?: boolean,
+  progressReporter?: ProgressReporter,
+  logger?: Logger
 ): Promise<void> {
-  const { files, bar } = await setupEnv(inputDir);
-  for (const file of files) {
-    bar.tick({ file });
-    const resultPath = path.join(outputDir, `${stripExtension(path.basename(file))}.eml`);
+  // Normalize arguments to object form
+  const options: ProcessEmlxsOptions =
+    typeof inputDirOrOptions === 'string'
+      ? { inputDir: inputDirOrOptions, outputDir: outputDir!, ignoreErrors, skipDeleted, progressReporter, logger }
+      : inputDirOrOptions;
+
+  const {
+    inputDir,
+    outputDir: outDir,
+    ignoreErrors: ignoreErrs,
+    skipDeleted: skipDel,
+    progressReporter: progReporter,
+    logger: log
+  } = options;
+  const { files } = await setupEnv(inputDir, progReporter);
+  for (let i = 0; i < files.length; i++) {
+    // Check for cancellation
+    if (progReporter?.isCancelled?.()) {
+      log?.info?.('Conversion cancelled by user');
+      break;
+    }
+
+    const file = files[i];
+
+    // Report progress via API
+    progReporter?.onProgress?.(i + 1, files.length, file);
+
+    const resultPath = path.join(outDir, `${stripExtension(path.basename(file))}.eml`);
     try {
       const writeStream = fs.createWriteStream(resultPath);
-      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrors, skipDeleted);
-      res.messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+      const res = await processEmlx(path.join(inputDir, file), writeStream, ignoreErrs, skipDel, log);
+      res.messages.forEach(message => {
+        log?.warn?.(`${file}: ${message}`);
+      });
     } catch (e) {
       if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-        bar.interrupt(`${file}: Message is marked as deleted (skipped)`);
-        fs.unlinkSync(resultPath);
+        log?.info?.(`${file}: Message is marked as deleted (skipped)`);
+        await fs.promises.unlink(resultPath);
         continue;
       }
-      bar.interrupt(
+      log?.error?.(
         `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
       );
-      bar.terminate();
       throw e;
     }
+  }
+
+  // Notify completion
+  progReporter?.onComplete?.();
+}
+
+/**
+ * Test IMAP connection and settings.
+ * Returns a promise that resolves with a success message or rejects with a user-friendly error.
+ */
+export async function testImapConnection(options: {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  mailbox: string;
+  tls: boolean;
+}): Promise<{ success: true; message: string }> {
+  let conn: ImapFlow | null = null;
+
+  try {
+    // Create connection
+    conn = new ImapFlow({
+      host: options.host,
+      port: options.port,
+      auth: {
+        user: options.user,
+        pass: options.pass
+      },
+      secure: options.tls,
+      logger: false
+    });
+
+    // Attempt to connect
+    try {
+      await conn.connect();
+    } catch (error) {
+      // Connection errors - distinguish between different types
+      if (error instanceof Error) {
+        const errMsg = error.message.toLowerCase();
+
+        // DNS/hostname errors
+        if (errMsg.includes('getaddrinfo') || errMsg.includes('enotfound')) {
+          throw new Error(`Cannot resolve hostname "${options.host}". Please check the IMAP server address.`, {
+            cause: error
+          });
+        }
+
+        // Connection refused (wrong port or server not running)
+        if (errMsg.includes('econnrefused')) {
+          throw new Error(
+            `Connection refused to ${options.host}:${options.port}. Please check the server address and port number.`,
+            { cause: error }
+          );
+        }
+
+        // Timeout errors
+        if (errMsg.includes('timeout') || errMsg.includes('etimedout')) {
+          throw new Error(
+            `Connection timeout to ${options.host}:${options.port}. The server may be unreachable or behind a firewall.`,
+            { cause: error }
+          );
+        }
+
+        // TLS/SSL errors
+        if (errMsg.includes('tls') || errMsg.includes('ssl') || errMsg.includes('certificate')) {
+          throw new Error(
+            `TLS/SSL error connecting to ${options.host}. Try ${options.tls ? 'disabling' : 'enabling'} TLS.`,
+            { cause: error }
+          );
+        }
+
+        // Authentication errors
+        if (errMsg.includes('authentication') || errMsg.includes('login') || errMsg.includes('authenticationfailed')) {
+          throw new Error(`Authentication failed. Please check your username and password.`, { cause: error });
+        }
+
+        // Generic connection error
+        throw new Error(`Connection failed: ${error.message}`, { cause: error });
+      }
+      throw error;
+    }
+
+    // Test mailbox access
+    try {
+      await conn.mailboxOpen(options.mailbox);
+    } catch (error) {
+      if (error instanceof Error) {
+        const errMsg = error.message.toLowerCase();
+
+        // Mailbox doesn't exist
+        if (errMsg.includes('nonexistent') || errMsg.includes('does not exist') || errMsg.includes('trycreate')) {
+          throw new Error(`Mailbox "${options.mailbox}" does not exist on the server. Please check the mailbox name.`, {
+            cause: error
+          });
+        }
+
+        // Permission denied
+        if (errMsg.includes('permission') || errMsg.includes('access denied')) {
+          throw new Error(`Access denied to mailbox "${options.mailbox}". Please check your permissions.`, {
+            cause: error
+          });
+        }
+
+        // Generic mailbox error
+        throw new Error(`Cannot access mailbox "${options.mailbox}": ${error.message}`, { cause: error });
+      }
+      throw error;
+    }
+
+    // Success - close connection
+    await conn.logout();
+
+    return {
+      success: true,
+      message: `Successfully connected to ${options.host} and accessed mailbox "${options.mailbox}".`
+    };
+  } catch (error) {
+    // Make sure to close connection on error
+    if (conn) {
+      try {
+        await conn.logout();
+      } catch {
+        // Ignore logout errors
+      }
+    }
+
+    // Re-throw the error
+    throw error;
   }
 }
 
@@ -68,6 +312,8 @@ export async function imapImport(
     user: string;
     pass: string;
     mailbox: string;
+    progressReporter?: ProgressReporter;
+    logger?: Logger;
   }
 ): Promise<void> {
   const conn = new ImapFlow({
@@ -81,10 +327,20 @@ export async function imapImport(
     logger: false
   });
   await conn.connect();
-  const { files, bar } = await setupEnv(inputDir);
+  const { files } = await setupEnv(inputDir, options.progressReporter);
   try {
-    for (const file of files) {
-      bar.tick({ file });
+    for (let i = 0; i < files.length; i++) {
+      // Check for cancellation
+      if (options.progressReporter?.isCancelled?.()) {
+        options.logger?.info?.('Conversion cancelled by user');
+        break;
+      }
+
+      const file = files[i];
+
+      // Report progress via API
+      options.progressReporter?.onProgress?.(i + 1, files.length, file);
+
       try {
         let writeStream: stream.Writable;
         const writeStreamCollector = new Promise<Buffer>(resolve => {
@@ -105,9 +361,12 @@ export async function imapImport(
           path.join(inputDir, file),
           writeStream!,
           options.ignoreErrors,
-          options.skipDeleted
+          options.skipDeleted,
+          options.logger
         );
-        res.messages.forEach(message => bar.interrupt(`${file}: ${message}`));
+        res.messages.forEach(message => {
+          options.logger?.warn?.(`${file}: ${message}`);
+        });
         const msgData = await writeStreamCollector;
         const dateRecvTS = res.plData['date-received'] as number | undefined;
         let dateRecv: Date;
@@ -131,21 +390,23 @@ export async function imapImport(
         await conn.append(options.mailbox, msgData, imapFlags, dateRecv);
       } catch (e) {
         if (e instanceof DeletedMessageError && e.message == 'DELETED') {
-          bar.interrupt(`${file}: Message is marked as deleted (skipped)`);
+          options.logger?.info?.(`${file}: Message is marked as deleted (skipped)`);
           continue;
         }
         if (e instanceof Error) {
-          bar.interrupt(`Caught Error: ${e.message}`);
+          options.logger?.error?.(`Caught Error: ${e.message}`);
           if (e.message.startsWith('Could not get attachment')) {
-            bar.interrupt(
+            options.logger?.warn?.(
               `Encountered error when processing ${file} -- run with '--ignoreErrors' argument to avoid aborting the conversion.`
             );
           }
         }
-        bar.terminate();
         throw e;
       }
     }
+
+    // Notify completion
+    options.progressReporter?.onComplete?.();
   } finally {
     await conn.logout();
   }
@@ -162,13 +423,16 @@ const appleContentLengthHeader = 'X-Apple-Content-Length';
  * @param ignoreErrors `true` to suppress throwing errors
  * (e.g. when attachment is missing). In this case, the
  * result array will contain a list of errors.
+ * @param skipDeleted `true` to skip messages marked as deleted
+ * @param logger Optional logger for capturing diagnostic messages
  * @returns List of error messages (when `ignoreErrors` was enabled)
  */
 export async function processEmlx(
   emlxFile: string,
   resultStream: Writable,
   ignoreErrors = false,
-  skipDeleted = false
+  skipDeleted = false,
+  logger?: Logger
 ): Promise<{ messages: string[]; flags: EmlxFlags[]; plData: PlistObject }> {
   const messages: string[] = [];
   // see here for a an example how to implement the Rewriter:
@@ -184,13 +448,15 @@ export async function processEmlx(
     });
     data.decoder.on('end', () => {
       // console.log(`\n\n${emlxFile} ${JSON.stringify(data.node.parentNode.headers.lines, null, 2)}\n\n`);
-      integrateAttachment(emlxFile, data).catch(err => {
+      integrateAttachment(emlxFile, data, logger).catch((err: Error) => {
         // propagate error event
         if (ignoreErrors) {
           // just store in `messages`
           messages.push(err.message);
+          logger?.warn?.(`${emlxFile}: ${err.message}`);
         } else {
           // emit (and then throw)
+          logger?.error?.(`${emlxFile}: ${err.message}`);
           rewriter.emit('error', err);
         }
       });
@@ -209,7 +475,7 @@ export async function processEmlx(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
+async function integrateAttachment(emlxFile: string, data: any, logger?: Logger): Promise<void> {
   const attachmentDirectoryPath = path.join(
     path.dirname(emlxFile),
     '..',
@@ -246,6 +512,7 @@ async function integrateAttachment(emlxFile: string, data: any): Promise<void> {
     if (fileNames.length > 0) {
       message += ` (tried ${fileNames.join(', ')})`;
     }
+    logger?.error?.(`${emlxFile}: ${message}`);
     throw new Error(message);
   }
 }
@@ -401,8 +668,30 @@ export function processCli(): void {
     .option('--skipDeleted', 'Skip messages marked as deleted')
     .argument('<input_directory>', 'input folder to read .emlx-files from')
     .argument('<output_directory>', 'output folder for .eml-files')
-    .action((inputDir: string, outputDir: string, options: { ignoreErrors?: boolean; skipDeleted?: boolean }) => {
-      processEmlxs(inputDir, outputDir, options.ignoreErrors, options.skipDeleted).catch(err => console.error(err));
+    .action(async (inputDir: string, outputDir: string, options: { ignoreErrors?: boolean; skipDeleted?: boolean }) => {
+      // Create progress bar for CLI
+      let bar!: ProgressBar;
+      const progressReporter: ProgressReporter = {
+        onStart: total => {
+          bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total, width: 40 });
+        },
+        onProgress: (_current, _total, fileName) => {
+          bar?.tick({ file: fileName });
+        }
+      };
+
+      try {
+        await processEmlxs({
+          inputDir,
+          outputDir,
+          ignoreErrors: options.ignoreErrors,
+          skipDeleted: options.skipDeleted,
+          progressReporter
+        });
+      } catch (err) {
+        bar?.terminate();
+        console.error(err);
+      }
     });
 
   program
@@ -421,8 +710,24 @@ export function processCli(): void {
     .option('--skipDeleted', 'Skip messages marked as deleted')
     .option('--ignoreErrors', "Don't abort conversion on error (see the log output for details in this case)")
     .argument('<input_directory>', 'input folder to read .emlx-files from')
-    .action((input: string, options) => {
-      imapImport(input, options).catch(err => console.error(err));
+    .action(async (input: string, options) => {
+      // Create progress bar for CLI
+      let bar!: ProgressBar;
+      const progressReporter: ProgressReporter = {
+        onStart: total => {
+          bar = new ProgressBar('Converting [:bar] :percent :etas :file', { total, width: 40 });
+        },
+        onProgress: (_current, _total, fileName) => {
+          bar?.tick({ file: fileName });
+        }
+      };
+
+      try {
+        await imapImport(input, { ...options, progressReporter });
+      } catch (err) {
+        bar?.terminate();
+        console.error(err);
+      }
     });
 
   program.parse(process.argv);
